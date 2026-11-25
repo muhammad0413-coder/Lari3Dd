@@ -1785,7 +1785,7 @@
             overlay.classList.add("hidden");
             this.isCountdown = false;
             this.isRunning = true;
-            this.runPhaseTimer = 4.5;
+            this.runPhaseTimer = 10.0;
             this.players.forEach((p, idx) => {
               document.getElementById(`p-status-${idx}`).textContent = "Lari Subway! ◀▲▼▶";
             });
@@ -1841,27 +1841,25 @@
       submitAnswer(playerIdx, optionIdx) {
         if (!this.isRunning || !this.roundActive) return;
         const p = this.players[playerIdx];
-        if (!p || p.finished || p.answeredThisRound) return;
+        if (!p || p.finished) return;
 
         p.answeredThisRound = true;
         p.selectedOptionThisRound = optionIdx;
 
         const letters = ["A", "B", "C", "D"];
-        document.getElementById(`p-status-${playerIdx}`).textContent = `🔒 Terkunci (${letters[optionIdx]})`;
+        document.getElementById(`p-status-${playerIdx}`).textContent = `Dipilih: ${letters[optionIdx]} (Bisa diubah)`;
+        AudioEngine.playTone(520, 0.06, "sine", 0.4, 0);
 
         for (let opt = 0; opt < 4; opt++) {
           const btn = document.getElementById(`p${playerIdx}-btn-${opt}`);
-          btn.disabled = true;
+          btn.disabled = false;
           if (opt === optionIdx) {
             btn.classList.add("ring-4", "ring-white");
+            btn.classList.remove("opacity-45");
           } else {
-            btn.classList.add("opacity-40");
+            btn.classList.remove("ring-4", "ring-white");
+            btn.classList.add("opacity-45");
           }
-        }
-
-        const activePlayers = this.players.filter(pl => !pl.finished);
-        if (activePlayers.length > 0 && activePlayers.every(pl => pl.answeredThisRound)) {
-          this.finishRound();
         }
       },
 
@@ -1936,7 +1934,7 @@
           this.roundTransitionTimer = setTimeout(() => {
             if (this.isRunning) {
               this.setControlPhase(false);
-              this.runPhaseTimer = 4.0;
+              this.runPhaseTimer = 10.0;
               this.players.forEach((p, idx) => {
                 if (!p.finished) {
                   document.getElementById(`p-status-${idx}`).textContent = "Lari Subway! ◀▲▼▶";
@@ -1974,6 +1972,15 @@
 
         const finishDist = Arena3D.trackLength;
         let finishedCount = this.players.filter(p => p.finished).length;
+
+        // Jika fase kuis sedang tampil, keempat pelari berhenti serentak agar fokus menjawab soal
+        if (this.quizPhaseActive) {
+          this.players.forEach(p => {
+            p.speed = 0;
+          });
+          this.updateLiveRankingsUI();
+          return;
+        }
 
         this.players.forEach((p, idx) => {
           if (p.finished) return;
