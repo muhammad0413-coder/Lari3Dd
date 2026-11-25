@@ -1,0 +1,2915 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>EDU RUNNER 3D – SDN KESILIR 02</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --p1-color: #2563eb;
+      --p2-color: #dc2626;
+      --p3-color: #d97706;
+      --p4-color: #16a34a;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-touch-callout: none;
+      touch-action: manipulation;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0f172a;
+      color: #f8fafc;
+    }
+
+    .font-display {
+      font-family: 'Fredoka', sans-serif;
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.4);
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(148, 163, 184, 0.5);
+      border-radius: 8px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(148, 163, 184, 0.8);
+    }
+
+    #canvas-container {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 1;
+    }
+
+    .arcade-panel {
+      background: rgba(15, 23, 42, 0.84);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid rgba(255, 255, 255, 0.16);
+      box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+    }
+
+    .arcade-panel-light {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 2px solid #cbd5e1;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.3);
+      color: #0f172a;
+    }
+
+    .btn-arcade {
+      transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.12s ease;
+      position: relative;
+    }
+    .btn-arcade:active:not(:disabled) {
+      transform: translateY(3px) scale(0.98);
+    }
+    .btn-arcade:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+    }
+
+    .ans-btn {
+      transition: all 0.1s ease;
+      box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+    }
+    .ans-btn:active:not(:disabled) {
+      transform: translateY(3px);
+      box-shadow: 0 1px 0 rgba(0, 0, 0, 0.35);
+    }
+
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-6px); }
+    }
+    .animate-float {
+      animation: floatSlow 3s ease-in-out infinite;
+    }
+
+    @keyframes popIn {
+      0% { transform: scale(0.85); opacity: 0; }
+      70% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop {
+      animation: popIn 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+
+    @keyframes pulseUrgent {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.08); }
+    }
+    .animate-urgent {
+      animation: pulseUrgent 0.6s infinite;
+    }
+
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #print-area, #print-area * {
+        visibility: visible;
+      }
+      #print-area {
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white !important;
+        color: black !important;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 3D ARENA CANVAS -->
+  <div id="canvas-container"></div>
+
+  <!-- SCREEN 1: HALAMAN PEMBUKA -->
+  <div id="screen-home" class="fixed inset-0 z-20 flex flex-col justify-between p-4 md:p-6 lg:p-8 pointer-events-none">
+    <div class="flex flex-wrap items-center justify-between gap-3 pointer-events-auto">
+      <div class="arcade-panel px-5 py-2.5 rounded-2xl flex items-center gap-3 border-amber-400/50">
+        <div class="w-3.5 h-3.5 rounded-full bg-emerald-400 animate-ping"></div>
+        <div>
+          <div class="text-xs font-bold tracking-widest uppercase text-amber-300">Identitas Sekolah</div>
+          <div class="text-base md:text-lg font-extrabold tracking-wide text-white">SDN KESILIR 02</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <button onclick="AudioEngine.toggleMute()" id="btn-mute-home" class="btn-arcade arcade-panel px-4 py-2.5 rounded-2xl font-bold text-sm md:text-base flex items-center gap-2 hover:bg-slate-800 text-white" title="Suara">
+          <span id="mute-icon-home">🔊</span>
+          <span class="hidden sm:inline">Suara</span>
+        </button>
+        <button onclick="toggleFullScreen()" class="btn-arcade bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-2xl font-extrabold text-sm md:text-base shadow-lg border-b-4 border-indigo-800 flex items-center gap-2">
+          <span>⛶</span>
+          <span>FULL SCREEN</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="my-auto flex flex-col items-center text-center pointer-events-auto max-w-5xl mx-auto">
+      <div class="inline-block bg-amber-400 text-slate-950 font-extrabold px-5 py-1.5 rounded-full text-sm md:text-base tracking-wider uppercase shadow-lg mb-3">
+        Lomba Lari Kuis Edukasi • Mode 4 Siswa IFP
+      </div>
+      <h1 class="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-bold tracking-tight text-white drop-shadow-[0_6px_0_rgba(15,23,42,0.95)] animate-float">
+        EDU RUNNER <span class="text-amber-400">3D</span>
+      </h1>
+      <p class="mt-2 text-lg md:text-2xl font-extrabold text-sky-200 drop-shadow">
+        SDN KESILIR 02
+      </p>
+
+      <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-3xl">
+        <div class="bg-blue-600/90 border-2 border-blue-300 rounded-2xl px-4 py-2.5 shadow-lg flex items-center justify-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-white inline-block"></span>
+          <span class="font-extrabold text-white text-sm md:text-base">SISWA 1 • BIRU</span>
+        </div>
+        <div class="bg-red-600/90 border-2 border-red-300 rounded-2xl px-4 py-2.5 shadow-lg flex items-center justify-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-white inline-block"></span>
+          <span class="font-extrabold text-white text-sm md:text-base">SISWA 2 • MERAH</span>
+        </div>
+        <div class="bg-amber-500/95 border-2 border-amber-200 rounded-2xl px-4 py-2.5 shadow-lg flex items-center justify-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-slate-900 inline-block"></span>
+          <span class="font-extrabold text-slate-950 text-sm md:text-base">SISWA 3 • KUNING</span>
+        </div>
+        <div class="bg-emerald-600/90 border-2 border-emerald-300 rounded-2xl px-4 py-2.5 shadow-lg flex items-center justify-center gap-2">
+          <span class="w-4 h-4 rounded-full bg-white inline-block"></span>
+          <span class="font-extrabold text-white text-sm md:text-base">SISWA 4 • HIJAU</span>
+        </div>
+      </div>
+
+      <div class="mt-7">
+        <button onclick="openSetupModal()" class="btn-arcade bg-gradient-to-b from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-slate-950 font-display text-2xl md:text-4xl font-bold px-10 md:px-14 py-4 md:py-5 rounded-3xl shadow-[0_8px_0_#065f46] border-2 border-emerald-200 flex items-center gap-3">
+          <span>▶</span>
+          <span>MULAI BERMAIN</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="flex flex-col gap-3 pointer-events-auto">
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 max-w-4xl mx-auto w-full">
+        <button onclick="openModal('modal-guide')" class="btn-arcade arcade-panel hover:bg-slate-800 text-white py-3.5 px-4 rounded-2xl font-extrabold text-base md:text-lg border-b-4 border-sky-500 flex items-center justify-center gap-2">
+          <span>📘</span> <span>PANDUAN</span>
+        </button>
+        <button onclick="openBankSoalModal()" class="btn-arcade arcade-panel hover:bg-slate-800 text-white py-3.5 px-4 rounded-2xl font-extrabold text-base md:text-lg border-b-4 border-amber-500 flex items-center justify-center gap-2">
+          <span>📚</span> <span>BANK SOAL</span>
+        </button>
+        <button onclick="openHistoryModal()" class="btn-arcade arcade-panel hover:bg-slate-800 text-white py-3.5 px-4 rounded-2xl font-extrabold text-base md:text-lg border-b-4 border-purple-500 flex items-center justify-center gap-2">
+          <span>🏆</span> <span>RIWAYAT</span>
+        </button>
+        <button onclick="openSettingsModal()" class="btn-arcade arcade-panel hover:bg-slate-800 text-white py-3.5 px-4 rounded-2xl font-extrabold text-base md:text-lg border-b-4 border-rose-500 flex items-center justify-center gap-2">
+          <span>⚙️</span> <span>PENGATURAN</span>
+        </button>
+      </div>
+
+      <div class="text-center text-xs md:text-sm font-semibold text-slate-200/90 drop-shadow">
+        Dikembangkan untuk SDN KESILIR 02 • Penyimpanan bank soal & riwayat tersimpan lokal pada browser/perangkat ini.
+      </div>
+    </div>
+  </div>
+
+  <!-- SCREEN 2: GAMEPLAY HUD (IFP LANDSCAPE 4-PLAYER ARENA) -->
+  <div id="screen-game" class="hidden fixed inset-0 z-20 flex flex-col justify-between p-2 md:p-3 pointer-events-none">
+
+    <!-- TOP BAR -->
+    <header class="arcade-panel rounded-2xl px-3 py-2 md:px-4 md:py-2.5 flex flex-wrap items-center justify-between gap-2 pointer-events-auto">
+      <div class="flex items-center gap-2.5">
+        <div class="bg-amber-400 text-slate-950 font-display font-bold px-3 py-1 rounded-xl text-sm md:text-base">
+          EDU RUNNER 3D
+        </div>
+        <div class="hidden sm:block">
+          <div class="text-xs font-extrabold text-amber-300 leading-tight">SDN KESILIR 02</div>
+          <div id="hud-subject-info" class="text-xs text-slate-300 font-semibold leading-tight">Kelas 4 • Matematika</div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3">
+        <div class="bg-slate-800/90 border border-slate-600 px-3 py-1 rounded-xl text-center">
+          <div class="text-[10px] uppercase tracking-wider text-slate-400 font-bold">Soal</div>
+          <div id="hud-q-counter" class="text-sm md:text-base font-extrabold text-white">1 / 10</div>
+        </div>
+
+        <div class="hidden lg:flex flex-col w-48 bg-slate-800/90 border border-slate-600 px-3 py-1.5 rounded-xl">
+          <div class="flex justify-between text-[10px] font-bold text-slate-300 mb-1">
+            <span>START</span>
+            <span>PROGRES LOMBA</span>
+            <span>FINISH</span>
+          </div>
+          <div class="relative h-2.5 bg-slate-700 rounded-full overflow-visible">
+            <div id="prog-dot-0" class="w-3 h-3 rounded-full bg-blue-500 border border-white absolute -top-0.5 transition-all" style="left: 0%"></div>
+            <div id="prog-dot-1" class="w-3 h-3 rounded-full bg-red-500 border border-white absolute -top-0.5 transition-all" style="left: 0%"></div>
+            <div id="prog-dot-2" class="w-3 h-3 rounded-full bg-amber-400 border border-slate-900 absolute -top-0.5 transition-all" style="left: 0%"></div>
+            <div id="prog-dot-3" class="w-3 h-3 rounded-full bg-emerald-500 border border-white absolute -top-0.5 transition-all" style="left: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <div id="hud-timer-box" class="bg-slate-900 border-2 border-amber-400 px-4 py-1 rounded-xl flex items-center gap-2">
+        <span class="text-base md:text-lg">⏱️</span>
+        <div>
+          <div class="text-[10px] uppercase font-bold text-amber-300 leading-none">Waktu</div>
+          <div id="hud-timer" class="text-lg md:text-xl font-black text-white leading-tight">20s</div>
+        </div>
+      </div>
+
+      <div class="hidden md:flex items-center gap-1.5 bg-slate-800/90 border border-slate-600 px-3 py-1.5 rounded-xl">
+        <span class="text-xs font-extrabold text-amber-300 mr-1">PERINGKAT:</span>
+        <div id="hud-live-ranks" class="flex items-center gap-1.5 text-xs font-bold"></div>
+      </div>
+
+      <div class="flex items-center gap-1.5">
+        <button onclick="cycleCameraMode()" class="btn-arcade bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-500" title="Ganti Sudut Kamera">
+          🎥 <span class="hidden xl:inline">Kamera</span>
+        </button>
+        <button onclick="AudioEngine.toggleMute()" id="btn-mute-game" class="btn-arcade bg-slate-700 hover:bg-slate-600 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold border border-slate-500" title="Mute / Unmute">
+          🔊
+        </button>
+        <button onclick="toggleFullScreen()" class="btn-arcade bg-indigo-600 hover:bg-indigo-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold" title="Full Screen">
+          ⛶
+        </button>
+        <button onclick="confirmExitMatch()" class="btn-arcade bg-rose-600 hover:bg-rose-500 text-white px-2.5 py-1.5 rounded-xl text-xs font-bold" title="Keluar Pertandingan">
+          ✖
+        </button>
+      </div>
+    </header>
+
+    <!-- COMPACT QUIZ QUESTION & OPTIONS PANEL -->
+    <div class="w-full max-w-5xl mx-auto my-0.5 pointer-events-auto">
+      <div id="quiz-card" class="arcade-panel-light rounded-xl px-3 py-1.5 md:px-4 md:py-2 border-2 border-sky-500">
+        <div class="flex flex-wrap items-center justify-between gap-1.5 mb-1">
+          <span id="quiz-meta-badge" class="bg-sky-100 text-sky-900 border border-sky-300 px-2 py-0.5 rounded-md text-[10px] md:text-xs font-extrabold">
+            Mata Pelajaran • Materi • Tingkat
+          </span>
+          <span id="quiz-round-status" class="text-[11px] md:text-xs font-extrabold text-indigo-700">
+            Pilih jawaban pada panel masing-masing di bawah!
+          </span>
+        </div>
+
+        <div id="quiz-question-text" class="text-sm sm:text-base md:text-lg font-extrabold text-slate-900 leading-snug mb-1.5">
+          Memuat pertanyaan...
+        </div>
+
+        <div id="quiz-options-display" class="grid grid-cols-2 lg:grid-cols-4 gap-1.5">
+          <div id="opt-card-0" class="bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1 flex items-center gap-1.5">
+            <span class="w-6 h-6 rounded-md bg-slate-800 text-white font-black flex items-center justify-center shrink-0 text-xs">A</span>
+            <span id="opt-text-0" class="font-bold text-slate-800 text-xs md:text-sm leading-tight">Pilihan A</span>
+          </div>
+          <div id="opt-card-1" class="bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1 flex items-center gap-1.5">
+            <span class="w-6 h-6 rounded-md bg-slate-800 text-white font-black flex items-center justify-center shrink-0 text-xs">B</span>
+            <span id="opt-text-1" class="font-bold text-slate-800 text-xs md:text-sm leading-tight">Pilihan B</span>
+          </div>
+          <div id="opt-card-2" class="bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1 flex items-center gap-1.5">
+            <span class="w-6 h-6 rounded-md bg-slate-800 text-white font-black flex items-center justify-center shrink-0 text-xs">C</span>
+            <span id="opt-text-2" class="font-bold text-slate-800 text-xs md:text-sm leading-tight">Pilihan C</span>
+          </div>
+          <div id="opt-card-3" class="bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1 flex items-center gap-1.5">
+            <span class="w-6 h-6 rounded-md bg-slate-800 text-white font-black flex items-center justify-center shrink-0 text-xs">D</span>
+            <span id="opt-text-3" class="font-bold text-slate-800 text-xs md:text-sm leading-tight">Pilihan D</span>
+          </div>
+        </div>
+
+        <div id="round-explanation-bar" class="hidden mt-1.5 bg-emerald-50 border border-emerald-400 rounded-lg px-2.5 py-1 flex items-center justify-between gap-2">
+          <div class="text-[11px] md:text-xs font-bold text-emerald-950">
+            <span class="font-black text-emerald-700">PEMBAHASAN:</span> <span id="round-explanation-text"></span>
+          </div>
+          <span id="next-round-countdown" class="shrink-0 bg-emerald-600 text-white text-[10px] font-extrabold px-2 py-0.5 rounded-md">Lanjut...</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- OPEN CENTER VIEWPORT FOR 3D TRACK -->
+    <div class="flex-1 pointer-events-none relative flex items-center justify-center">
+      <div id="countdown-overlay" class="hidden bg-slate-950/75 border-4 border-amber-400 px-10 py-6 rounded-3xl text-center shadow-2xl animate-pop">
+        <div class="text-sm font-extrabold uppercase tracking-widest text-amber-300 mb-1">Bersiap di Garis Start!</div>
+        <div id="countdown-number" class="font-display text-6xl md:text-8xl font-bold text-white drop-shadow">3</div>
+      </div>
+
+      <div id="arena-toast-feed" class="absolute top-2 right-2 flex flex-col gap-1.5 max-w-xs"></div>
+    </div>
+
+    <!-- BOTTOM BAR: FOUR HORIZONTAL PLAYER PANELS -->
+    <section aria-label="Panel Kontrol Empat Siswa" class="grid grid-cols-4 gap-2 md:gap-3 w-full pointer-events-auto">
+      
+      <!-- SISWA 1: BIRU -->
+      <div id="player-panel-0" class="rounded-2xl bg-blue-950/90 border-2 border-blue-400 p-2 md:p-2.5 shadow-xl flex flex-col justify-between">
+        <div class="flex items-center justify-between gap-1 mb-1.5">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="bg-blue-600 text-white text-[11px] font-black px-2 py-0.5 rounded-lg shrink-0">S1 • BIRU</span>
+            <span id="p-name-0" class="font-extrabold text-white text-xs sm:text-sm md:text-base truncate">Siswa 1</span>
+          </div>
+          <div class="text-right shrink-0">
+            <span id="p-score-0" class="bg-blue-900 border border-blue-400/50 text-amber-300 font-black text-xs md:text-sm px-2 py-0.5 rounded-lg">0</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] font-bold mb-1.5 px-1">
+          <span id="p-status-0" class="text-blue-200">Siap menjawab</span>
+          <span id="p-power-0" class="text-amber-300"></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button onclick="submitPlayerAnswer(0, 0)" id="p0-btn-0" class="ans-btn bg-blue-600 hover:bg-blue-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-blue-300">A<span class="block text-[9px] font-sans opacity-75 leading-none">[1]</span></button>
+          <button onclick="submitPlayerAnswer(0, 1)" id="p0-btn-1" class="ans-btn bg-blue-600 hover:bg-blue-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-blue-300">B<span class="block text-[9px] font-sans opacity-75 leading-none">[2]</span></button>
+          <button onclick="submitPlayerAnswer(0, 2)" id="p0-btn-2" class="ans-btn bg-blue-600 hover:bg-blue-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-blue-300">C<span class="block text-[9px] font-sans opacity-75 leading-none">[3]</span></button>
+          <button onclick="submitPlayerAnswer(0, 3)" id="p0-btn-3" class="ans-btn bg-blue-600 hover:bg-blue-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-blue-300">D<span class="block text-[9px] font-sans opacity-75 leading-none">[4]</span></button>
+        </div>
+      </div>
+
+      <!-- SISWA 2: MERAH -->
+      <div id="player-panel-1" class="rounded-2xl bg-red-950/90 border-2 border-red-400 p-2 md:p-2.5 shadow-xl flex flex-col justify-between">
+        <div class="flex items-center justify-between gap-1 mb-1.5">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="bg-red-600 text-white text-[11px] font-black px-2 py-0.5 rounded-lg shrink-0">S2 • MERAH</span>
+            <span id="p-name-1" class="font-extrabold text-white text-xs sm:text-sm md:text-base truncate">Siswa 2</span>
+          </div>
+          <div class="text-right shrink-0">
+            <span id="p-score-1" class="bg-red-900 border border-red-400/50 text-amber-300 font-black text-xs md:text-sm px-2 py-0.5 rounded-lg">0</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] font-bold mb-1.5 px-1">
+          <span id="p-status-1" class="text-red-200">Siap menjawab</span>
+          <span id="p-power-1" class="text-amber-300"></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button onclick="submitPlayerAnswer(1, 0)" id="p1-btn-0" class="ans-btn bg-red-600 hover:bg-red-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-red-300">A<span class="block text-[9px] font-sans opacity-75 leading-none">[Q]</span></button>
+          <button onclick="submitPlayerAnswer(1, 1)" id="p1-btn-1" class="ans-btn bg-red-600 hover:bg-red-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-red-300">B<span class="block text-[9px] font-sans opacity-75 leading-none">[W]</span></button>
+          <button onclick="submitPlayerAnswer(1, 2)" id="p1-btn-2" class="ans-btn bg-red-600 hover:bg-red-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-red-300">C<span class="block text-[9px] font-sans opacity-75 leading-none">[E]</span></button>
+          <button onclick="submitPlayerAnswer(1, 3)" id="p1-btn-3" class="ans-btn bg-red-600 hover:bg-red-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-red-300">D<span class="block text-[9px] font-sans opacity-75 leading-none">[R]</span></button>
+        </div>
+      </div>
+
+      <!-- SISWA 3: KUNING -->
+      <div id="player-panel-2" class="rounded-2xl bg-amber-950/90 border-2 border-amber-400 p-2 md:p-2.5 shadow-xl flex flex-col justify-between">
+        <div class="flex items-center justify-between gap-1 mb-1.5">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="bg-amber-400 text-slate-950 text-[11px] font-black px-2 py-0.5 rounded-lg shrink-0">S3 • KUNING</span>
+            <span id="p-name-2" class="font-extrabold text-white text-xs sm:text-sm md:text-base truncate">Siswa 3</span>
+          </div>
+          <div class="text-right shrink-0">
+            <span id="p-score-2" class="bg-amber-900 border border-amber-400/50 text-amber-300 font-black text-xs md:text-sm px-2 py-0.5 rounded-lg">0</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] font-bold mb-1.5 px-1">
+          <span id="p-status-2" class="text-amber-200">Siap menjawab</span>
+          <span id="p-power-2" class="text-emerald-300"></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button onclick="submitPlayerAnswer(2, 0)" id="p2-btn-0" class="ans-btn bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-amber-200">A<span class="block text-[9px] font-sans opacity-75 leading-none">[A]</span></button>
+          <button onclick="submitPlayerAnswer(2, 1)" id="p2-btn-1" class="ans-btn bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-amber-200">B<span class="block text-[9px] font-sans opacity-75 leading-none">[S]</span></button>
+          <button onclick="submitPlayerAnswer(2, 2)" id="p2-btn-2" class="ans-btn bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-amber-200">C<span class="block text-[9px] font-sans opacity-75 leading-none">[D]</span></button>
+          <button onclick="submitPlayerAnswer(2, 3)" id="p2-btn-3" class="ans-btn bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-amber-200">D<span class="block text-[9px] font-sans opacity-75 leading-none">[F]</span></button>
+        </div>
+      </div>
+
+      <!-- SISWA 4: HIJAU -->
+      <div id="player-panel-3" class="rounded-2xl bg-emerald-950/90 border-2 border-emerald-400 p-2 md:p-2.5 shadow-xl flex flex-col justify-between">
+        <div class="flex items-center justify-between gap-1 mb-1.5">
+          <div class="flex items-center gap-1.5 min-w-0">
+            <span class="bg-emerald-600 text-white text-[11px] font-black px-2 py-0.5 rounded-lg shrink-0">S4 • HIJAU</span>
+            <span id="p-name-3" class="font-extrabold text-white text-xs sm:text-sm md:text-base truncate">Siswa 4</span>
+          </div>
+          <div class="text-right shrink-0">
+            <span id="p-score-3" class="bg-emerald-900 border border-emerald-400/50 text-amber-300 font-black text-xs md:text-sm px-2 py-0.5 rounded-lg">0</span>
+          </div>
+        </div>
+        <div class="flex items-center justify-between text-[11px] font-bold mb-1.5 px-1">
+          <span id="p-status-3" class="text-emerald-200">Siap menjawab</span>
+          <span id="p-power-3" class="text-amber-300"></span>
+        </div>
+        <div class="grid grid-cols-4 gap-1.5">
+          <button onclick="submitPlayerAnswer(3, 0)" id="p3-btn-0" class="ans-btn bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-emerald-300">A<span class="block text-[9px] font-sans opacity-75 leading-none">[J]</span></button>
+          <button onclick="submitPlayerAnswer(3, 1)" id="p3-btn-1" class="ans-btn bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-emerald-300">B<span class="block text-[9px] font-sans opacity-75 leading-none">[K]</span></button>
+          <button onclick="submitPlayerAnswer(3, 2)" id="p3-btn-2" class="ans-btn bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-emerald-300">C<span class="block text-[9px] font-sans opacity-75 leading-none">[L]</span></button>
+          <button onclick="submitPlayerAnswer(3, 3)" id="p3-btn-3" class="ans-btn bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-emerald-300">D<span class="block text-[9px] font-sans opacity-75 leading-none">[;]</span></button>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <!-- MODAL 1: SETUP PEMAIN, KELAS & MATA PELAJARAN -->
+  <div id="modal-setup" class="hidden fixed inset-0 z-30 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="arcade-panel rounded-3xl w-full max-w-5xl max-h-[94vh] flex flex-col overflow-hidden border-2 border-amber-400/50 animate-pop">
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400">SDN KESILIR 02 • Persiapan Lomba</span>
+          <h2 class="font-display text-2xl md:text-3xl font-bold text-white">Pengaturan Peserta & Mata Pelajaran</h2>
+        </div>
+        <button onclick="closeModal('modal-setup')" class="btn-arcade bg-slate-800 hover:bg-slate-700 text-white w-10 h-10 rounded-xl font-bold text-xl">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-6">
+        <div>
+          <h3 class="text-base md:text-lg font-extrabold text-sky-300 mb-3 flex items-center gap-2">
+            <span>1. Nama Empat Siswa Peserta Lomba</span>
+          </h3>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <div class="bg-blue-950/80 border-2 border-blue-400 rounded-2xl p-3">
+              <label class="block text-xs font-black text-blue-300 mb-1">SISWA 1 (BIRU)</label>
+              <input id="input-p0" type="text" maxlength="18" value="Andi" class="w-full bg-slate-900 text-white font-bold px-3 py-2.5 rounded-xl border border-blue-400 focus:outline-none focus:ring-2 focus:ring-blue-300" placeholder="Nama Siswa 1" />
+            </div>
+            <div class="bg-red-950/80 border-2 border-red-400 rounded-2xl p-3">
+              <label class="block text-xs font-black text-red-300 mb-1">SISWA 2 (MERAH)</label>
+              <input id="input-p1" type="text" maxlength="18" value="Budi" class="w-full bg-slate-900 text-white font-bold px-3 py-2.5 rounded-xl border border-red-400 focus:outline-none focus:ring-2 focus:ring-red-300" placeholder="Nama Siswa 2" />
+            </div>
+            <div class="bg-amber-950/80 border-2 border-amber-400 rounded-2xl p-3">
+              <label class="block text-xs font-black text-amber-300 mb-1">SISWA 3 (KUNING)</label>
+              <input id="input-p2" type="text" maxlength="18" value="Citra" class="w-full bg-slate-900 text-white font-bold px-3 py-2.5 rounded-xl border border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-300" placeholder="Nama Siswa 3" />
+            </div>
+            <div class="bg-emerald-950/80 border-2 border-emerald-400 rounded-2xl p-3">
+              <label class="block text-xs font-black text-emerald-300 mb-1">SISWA 4 (HIJAU)</label>
+              <input id="input-p3" type="text" maxlength="18" value="Dewi" class="w-full bg-slate-900 text-white font-bold px-3 py-2.5 rounded-xl border border-emerald-400 focus:outline-none focus:ring-2 focus:ring-emerald-300" placeholder="Nama Siswa 4" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h3 class="text-base md:text-lg font-extrabold text-sky-300 mb-3">
+            2. Pilih Jenjang Kelas (Kurikulum Merdeka)
+          </h3>
+          <div id="grade-selector-grid" class="grid grid-cols-3 sm:grid-cols-6 gap-2.5"></div>
+          <p id="grade-phase-note" class="mt-2 text-xs text-slate-300 font-semibold"></p>
+        </div>
+
+        <div>
+          <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+            <h3 class="text-base md:text-lg font-extrabold text-sky-300">
+              3. Pilih Mata Pelajaran SD
+            </h3>
+            <span id="available-q-count" class="text-xs font-extrabold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-full">
+              Tersedia: 0 Soal
+            </span>
+          </div>
+          <div id="subject-selector-grid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5"></div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-900 border-t border-slate-700 flex flex-wrap items-center justify-between gap-3">
+        <div class="text-xs text-slate-400 font-semibold">
+          Pastikan keempat siswa sudah berdiri di depan layar IFP sesuai warna masing-masing.
+        </div>
+        <div class="flex items-center gap-3">
+          <button onclick="closeModal('modal-setup')" class="btn-arcade bg-slate-700 hover:bg-slate-600 text-white px-5 py-3 rounded-2xl font-bold">
+            Batal
+          </button>
+          <button onclick="startMatchFromSetup()" class="btn-arcade bg-gradient-to-b from-emerald-400 to-emerald-600 hover:from-emerald-300 hover:to-emerald-500 text-slate-950 px-8 py-3 rounded-2xl font-display font-bold text-xl shadow-[0_5px_0_#065f46]">
+            LANJUTKAN & MULAI LOMBA ▶
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: HASIL PERTANDINGAN & PODIUM JUARA -->
+  <div id="modal-results" class="hidden fixed inset-0 z-40 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div id="print-area" class="arcade-panel rounded-3xl w-full max-w-5xl max-h-[94vh] flex flex-col overflow-hidden border-2 border-amber-400 animate-pop">
+      <div class="px-6 py-4 bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-950 border-b border-amber-400/40 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div class="text-xs font-black uppercase tracking-widest text-amber-400">SDN KESILIR 02 • Hasil Resmi Pertandingan</div>
+          <h2 class="font-display text-2xl md:text-3xl font-bold text-white">Podium Juara EDU RUNNER 3D</h2>
+        </div>
+        <div id="result-meta-summary" class="text-right text-xs md:text-sm font-bold text-sky-200">
+          Kelas 4 • Matematika
+        </div>
+      </div>
+
+      <div class="p-5 md:p-6 overflow-y-auto space-y-5">
+        <div id="podium-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+
+        <div class="bg-slate-900/90 border border-slate-700 rounded-2xl overflow-hidden">
+          <div class="px-4 py-2.5 bg-slate-800 border-b border-slate-700 font-extrabold text-sm text-amber-300">
+            Rincian Statistik Performa Siswa
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs md:text-sm">
+              <thead class="bg-slate-800/60 text-slate-300 uppercase text-[11px]">
+                <tr>
+                  <th class="px-4 py-2.5">Peringkat</th>
+                  <th class="px-4 py-2.5">Nama Siswa</th>
+                  <th class="px-4 py-2.5">Skor</th>
+                  <th class="px-4 py-2.5 text-emerald-400">Benar</th>
+                  <th class="px-4 py-2.5 text-rose-400">Salah</th>
+                  <th class="px-4 py-2.5 text-slate-400">Kosong</th>
+                  <th class="px-4 py-2.5">Akurasi</th>
+                  <th class="px-4 py-2.5">Waktu Finish</th>
+                </tr>
+              </thead>
+              <tbody id="results-table-body" class="divide-y divide-slate-800 font-semibold"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="results-review-section" class="hidden bg-slate-900/95 border border-sky-500/40 rounded-2xl p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-base text-sky-300">📖 Pembahasan Soal Pertandingan Ini</h3>
+            <button onclick="toggleResultsReview()" class="text-xs font-bold text-slate-400 hover:text-white">Tutup Pembahasan</button>
+          </div>
+          <div id="results-review-list" class="space-y-2.5 max-h-60 overflow-y-auto pr-1"></div>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-900 border-t border-slate-700 flex flex-wrap items-center justify-between gap-2.5">
+        <button onclick="exitToHomeFromResults()" class="btn-arcade bg-slate-700 hover:bg-slate-600 text-white px-4 py-2.5 rounded-xl font-bold text-sm">
+          🏠 Menu Utama
+        </button>
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="toggleResultsReview()" class="btn-arcade bg-sky-600 hover:bg-sky-500 text-white px-4 py-2.5 rounded-xl font-extrabold text-sm">
+            📖 LIHAT PEMBAHASAN
+          </button>
+          <button onclick="window.print()" class="btn-arcade bg-purple-600 hover:bg-purple-500 text-white px-4 py-2.5 rounded-xl font-extrabold text-sm">
+            🖨️ CETAK HASIL
+          </button>
+          <button onclick="changePlayersFromResults()" class="btn-arcade bg-amber-500 hover:bg-amber-400 text-slate-950 px-4 py-2.5 rounded-xl font-extrabold text-sm">
+            👥 GANTI PEMAIN
+          </button>
+          <button onclick="playAgainSameSetup()" class="btn-arcade bg-emerald-500 hover:bg-emerald-400 text-slate-950 px-5 py-2.5 rounded-xl font-extrabold text-sm shadow-lg">
+            🔄 MAIN LAGI
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: BANK SOAL & PENGELOLAAN SOAL GURU -->
+  <div id="modal-bank" class="hidden fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="arcade-panel rounded-3xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden border-2 border-amber-400/60 animate-pop">
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-700 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400">SDN KESILIR 02 • Manajemen Konten Edukasi</span>
+          <h2 class="font-display text-2xl md:text-3xl font-bold text-white">Bank Soal & Pengelolaan Soal Guru</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exportQuestionsJSON()" class="btn-arcade bg-sky-600 hover:bg-sky-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm">
+            ⬇ Ekspor JSON
+          </button>
+          <label class="btn-arcade bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm cursor-pointer">
+            ⬆ Impor JSON
+            <input type="file" accept=".json" onchange="importQuestionsJSON(event)" class="hidden" />
+          </label>
+          <button onclick="closeModal('modal-bank')" class="btn-arcade bg-slate-800 hover:bg-slate-700 text-white w-10 h-10 rounded-xl font-bold text-xl">✕</button>
+        </div>
+      </div>
+
+      <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-hidden">
+        <div class="lg:col-span-5 p-4 md:p-5 bg-slate-900/70 border-b lg:border-b-0 lg:border-r border-slate-700 overflow-y-auto space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 id="form-q-title" class="font-extrabold text-base md:text-lg text-amber-300">➕ Tambah Soal Baru</h3>
+            <button onclick="resetQuestionForm()" id="btn-cancel-edit" class="hidden text-xs font-bold text-rose-400 hover:underline">Batal Edit</button>
+          </div>
+
+          <input type="hidden" id="edit-q-id" value="" />
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Kelas</label>
+              <select id="fq-grade" onchange="updateFormSubjectOptions()" class="w-full bg-slate-800 text-white text-sm font-bold px-3 py-2 rounded-xl border border-slate-600">
+                <option value="1">Kelas 1</option>
+                <option value="2">Kelas 2</option>
+                <option value="3">Kelas 3</option>
+                <option value="4" selected>Kelas 4</option>
+                <option value="5">Kelas 5</option>
+                <option value="6">Kelas 6</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Tingkat Kesulitan</label>
+              <select id="fq-diff" class="w-full bg-slate-800 text-white text-sm font-bold px-3 py-2 rounded-xl border border-slate-600">
+                <option value="Mudah">Mudah</option>
+                <option value="Sedang">Sedang</option>
+                <option value="Sulit">Sulit</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Mata Pelajaran</label>
+              <select id="fq-subject" class="w-full bg-slate-800 text-white text-sm font-bold px-3 py-2 rounded-xl border border-slate-600"></select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-300 mb-1">Topik / Materi</label>
+              <input id="fq-topic" type="text" placeholder="Contoh: Pecahan / Pancasila" class="w-full bg-slate-800 text-white text-sm font-semibold px-3 py-2 rounded-xl border border-slate-600" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-300 mb-1">Pertanyaan</label>
+            <textarea id="fq-question" rows="2" placeholder="Tulis pertanyaan untuk siswa SD..." class="w-full bg-slate-800 text-white text-sm font-semibold px-3 py-2 rounded-xl border border-slate-600"></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-0.5">Pilihan A</label>
+              <input id="fq-opt0" type="text" placeholder="Jawaban A" class="w-full bg-slate-800 text-white text-sm px-2.5 py-1.5 rounded-lg border border-slate-600" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-0.5">Pilihan B</label>
+              <input id="fq-opt1" type="text" placeholder="Jawaban B" class="w-full bg-slate-800 text-white text-sm px-2.5 py-1.5 rounded-lg border border-slate-600" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-0.5">Pilihan C</label>
+              <input id="fq-opt2" type="text" placeholder="Jawaban C" class="w-full bg-slate-800 text-white text-sm px-2.5 py-1.5 rounded-lg border border-slate-600" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-300 mb-0.5">Pilihan D</label>
+              <input id="fq-opt3" type="text" placeholder="Jawaban D" class="w-full bg-slate-800 text-white text-sm px-2.5 py-1.5 rounded-lg border border-slate-600" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-xs font-bold text-emerald-300 mb-1">Kunci Jawaban</label>
+              <select id="fq-answer" class="w-full bg-emerald-950 text-emerald-200 text-sm font-extrabold px-3 py-2 rounded-xl border border-emerald-500">
+                <option value="0">Pilihan A</option>
+                <option value="1">Pilihan B</option>
+                <option value="2">Pilihan C</option>
+                <option value="3">Pilihan D</option>
+              </select>
+            </div>
+            <div class="col-span-2">
+              <label class="block text-xs font-bold text-slate-300 mb-1">Pembahasan Singkat</label>
+              <input id="fq-explanation" type="text" placeholder="Penjelasan mengapa jawaban tersebut benar..." class="w-full bg-slate-800 text-white text-sm px-3 py-2 rounded-xl border border-slate-600" />
+            </div>
+          </div>
+
+          <div class="pt-1 flex items-center gap-2">
+            <button onclick="saveQuestionFromForm()" class="btn-arcade flex-1 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold py-2.5 rounded-xl text-sm shadow">
+              💾 SIMPAN SOAL
+            </button>
+            <button onclick="restoreDefaultQuestions()" class="btn-arcade bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold px-3 py-2.5 rounded-xl text-xs" title="Pulihkan soal bawaan jika terhapus">
+              Reset Bawaan
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-7 p-4 md:p-5 flex flex-col overflow-hidden">
+          <div class="flex flex-wrap items-center gap-2 mb-3">
+            <select id="filter-bank-grade" onchange="renderBankList()" class="bg-slate-800 text-white text-xs md:text-sm font-bold px-3 py-2 rounded-xl border border-slate-600">
+              <option value="ALL">Semua Kelas (1–6)</option>
+              <option value="1">Kelas 1</option>
+              <option value="2">Kelas 2</option>
+              <option value="3">Kelas 3</option>
+              <option value="4">Kelas 4</option>
+              <option value="5">Kelas 5</option>
+              <option value="6">Kelas 6</option>
+            </select>
+            <select id="filter-bank-subject" onchange="renderBankList()" class="bg-slate-800 text-white text-xs md:text-sm font-bold px-3 py-2 rounded-xl border border-slate-600">
+              <option value="ALL">Semua Mata Pelajaran</option>
+            </select>
+            <input id="filter-bank-search" oninput="renderBankList()" type="text" placeholder="Cari pertanyaan..." class="flex-1 min-w-[140px] bg-slate-800 text-white text-xs md:text-sm px-3 py-2 rounded-xl border border-slate-600" />
+            <span id="bank-total-badge" class="text-xs font-extrabold text-amber-300 bg-slate-800 px-3 py-2 rounded-xl border border-slate-700">
+              0 Soal
+            </span>
+          </div>
+
+          <div id="bank-questions-list" class="flex-1 overflow-y-auto space-y-2.5 pr-1"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: RIWAYAT PERTANDINGAN -->
+  <div id="modal-history" class="hidden fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="arcade-panel rounded-3xl w-full max-w-5xl max-h-[90vh] flex flex-col overflow-hidden border-2 border-purple-400/60 animate-pop">
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-700 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-purple-300">SDN KESILIR 02 • Arsip Lokal Perangkat</span>
+          <h2 class="font-display text-2xl md:text-3xl font-bold text-white">Riwayat Pertandingan</h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="exportHistoryCSV()" class="btn-arcade bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm">
+            📊 Ekspor CSV
+          </button>
+          <button onclick="clearMatchHistory()" class="btn-arcade bg-rose-600/80 hover:bg-rose-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm">
+            🗑️ Hapus Riwayat
+          </button>
+          <button onclick="closeModal('modal-history')" class="btn-arcade bg-slate-800 hover:bg-slate-700 text-white w-10 h-10 rounded-xl font-bold text-xl">✕</button>
+        </div>
+      </div>
+
+      <div class="p-5 overflow-y-auto flex-1">
+        <p class="text-xs text-slate-300 mb-3">
+          Catatan pertandingan disimpan secara lokal pada browser/perangkat IFP ini.
+        </p>
+        <div class="overflow-x-auto bg-slate-900/90 border border-slate-700 rounded-2xl">
+          <table class="w-full text-left text-xs md:text-sm">
+            <thead class="bg-slate-800 text-slate-300 uppercase text-[11px]">
+              <tr>
+                <th class="px-4 py-3">Tanggal</th>
+                <th class="px-4 py-3">Kelas & Mapel</th>
+                <th class="px-4 py-3">Juara 1</th>
+                <th class="px-4 py-3">Peserta & Skor</th>
+                <th class="px-4 py-3">Durasi</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-slate-800 font-semibold"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 5: PENGATURAN APLIKASI -->
+  <div id="modal-settings" class="hidden fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="arcade-panel rounded-3xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border-2 border-rose-400/60 animate-pop">
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-rose-300">SDN KESILIR 02 • Konfigurasi IFP</span>
+          <h2 class="font-display text-2xl font-bold text-white">Pengaturan Permainan</h2>
+        </div>
+        <button onclick="closeModal('modal-settings')" class="btn-arcade bg-slate-800 hover:bg-slate-700 text-white w-10 h-10 rounded-xl font-bold text-xl">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+            <label class="block text-xs font-extrabold text-amber-300 uppercase mb-1.5">Jumlah Soal per Lomba</label>
+            <select id="set-qcount" class="w-full bg-slate-800 text-white font-bold px-3 py-2.5 rounded-xl border border-slate-600">
+              <option value="5">5 Soal (Cepat)</option>
+              <option value="8">8 Soal (Standar)</option>
+              <option value="10" selected>10 Soal (Lengkap)</option>
+              <option value="15">15 Soal (Maraton)</option>
+            </select>
+          </div>
+
+          <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+            <label class="block text-xs font-extrabold text-amber-300 uppercase mb-1.5">Timer per Soal</label>
+            <select id="set-timer" class="w-full bg-slate-800 text-white font-bold px-3 py-2.5 rounded-xl border border-slate-600">
+              <option value="15">15 Detik</option>
+              <option value="20" selected>20 Detik</option>
+              <option value="25">25 Detik</option>
+              <option value="30">30 Detik</option>
+            </select>
+          </div>
+
+          <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+            <label class="block text-xs font-extrabold text-amber-300 uppercase mb-1.5">Kualitas Grafis 3D (Optimasi GPU)</label>
+            <select id="set-graphics" class="w-full bg-slate-800 text-white font-bold px-3 py-2.5 rounded-xl border border-slate-600">
+              <option value="low">Ringan (Hemat GPU IFP)</option>
+              <option value="medium" selected>Menengah (Seimbang)</option>
+              <option value="high">Tinggi (Bayangan & Detail Penuh)</option>
+            </select>
+          </div>
+
+          <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+            <label class="block text-xs font-extrabold text-amber-300 uppercase mb-1.5">Sudut Kamera Arena</label>
+            <select id="set-camera" class="w-full bg-slate-800 text-white font-bold px-3 py-2.5 rounded-xl border border-slate-600">
+              <option value="dynamic" selected>Dinamis Mengikuti Pelari</option>
+              <option value="broadcast">Tampak Samping-Atas (Broadcast)</option>
+              <option value="chase">Belakang Pelari (Chase Cam)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700 space-y-3">
+          <div>
+            <div class="flex justify-between text-xs font-extrabold text-sky-300 mb-1">
+              <span>Volume Musik Latar</span>
+              <span id="vol-music-label">40%</span>
+            </div>
+            <input id="set-vol-music" type="range" min="0" max="100" value="40" oninput="document.getElementById('vol-music-label').textContent = this.value + '%'" class="w-full accent-sky-400" />
+          </div>
+          <div>
+            <div class="flex justify-between text-xs font-extrabold text-emerald-300 mb-1">
+              <span>Volume Efek Suara</span>
+              <span id="vol-sfx-label">80%</span>
+            </div>
+            <input id="set-vol-sfx" type="range" min="0" max="100" value="80" oninput="document.getElementById('vol-sfx-label').textContent = this.value + '%'" class="w-full accent-emerald-400" />
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+          <div>
+            <div class="font-extrabold text-sm text-white">Mode Layar Penuh (IFP)</div>
+            <div class="text-xs text-slate-400">Aktifkan tampilan 16:9 tanpa bilah browser</div>
+          </div>
+          <button onclick="toggleFullScreen()" class="btn-arcade bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl font-bold text-sm">
+            ⛶ Toggle Full Screen
+          </button>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-900 border-t border-slate-700 flex justify-end gap-3">
+        <button onclick="saveSettingsFromModal()" class="btn-arcade bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl">
+          💾 Simpan Pengaturan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 6: PANDUAN BERMAIN -->
+  <div id="modal-guide" class="hidden fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
+    <div class="arcade-panel rounded-3xl w-full max-w-3xl max-h-[90vh] flex flex-col overflow-hidden border-2 border-sky-400/60 animate-pop">
+      <div class="px-6 py-4 bg-slate-900 border-b border-slate-700 flex items-center justify-between">
+        <div>
+          <span class="text-xs font-extrabold uppercase tracking-wider text-sky-300">SDN KESILIR 02 • Petunjuk Penggunaan IFP</span>
+          <h2 class="font-display text-2xl font-bold text-white">Panduan Bermain EDU RUNNER 3D</h2>
+        </div>
+        <button onclick="closeModal('modal-guide')" class="btn-arcade bg-slate-800 hover:bg-slate-700 text-white w-10 h-10 rounded-xl font-bold text-xl">✕</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 text-sm text-slate-200 leading-relaxed">
+        <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+          <h3 class="font-extrabold text-amber-300 text-base mb-1">1. Posisi Empat Siswa di Depan Layar IFP</h3>
+          <p>Empat siswa berdiri sejajar di depan layar sentuh dari kiri ke kanan sesuai warna lintasan masing-masing: <strong>Siswa 1 (Biru)</strong>, <strong>Siswa 2 (Merah)</strong>, <strong>Siswa 3 (Kuning)</strong>, dan <strong>Siswa 4 (Hijau)</strong>.</p>
+        </div>
+
+        <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+          <h3 class="font-extrabold text-emerald-300 text-base mb-1">2. Cara Menjawab & Kecepatan Lari</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li>Setiap ronde menampilkan 1 pertanyaan di tengah layar dengan pilihan <strong>A, B, C, D</strong>.</li>
+            <li>Keempat siswa menekan tombol jawaban pada panel warnanya masing-masing secara bersamaan.</li>
+            <li><strong>Jawaban Benar:</strong> Mendapat <strong>+100 poin</strong> dan dorongan kecepatan lari (Sprint)!</li>
+            <li><strong>Jawaban Salah / Tidak Menjawab:</strong> Karakter melambat sementara.</li>
+          </ul>
+        </div>
+
+        <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+          <h3 class="font-extrabold text-sky-300 text-base mb-1">3. Rintangan & Power-Up di Lintasan 3D</h3>
+          <ul class="list-disc pl-5 space-y-1">
+            <li><strong>Rintangan (Batu, Kotak, Palang, Lubang, Penghalang Bergerak):</strong> Pelari melompat otomatis saat kecepatan tinggi, namun jika melambat akan tersandung.</li>
+            <li><strong>⚡ Turbo:</strong> Meningkatkan kecepatan lari secara drastis.</li>
+            <li><strong>🛡️ Shield (Perisai):</strong> Melindungi pelari dari rintangan di lintasan.</li>
+            <li><strong>🧲 Magnet:</strong> Menarik bonus skor di sekitar lintasan.</li>
+            <li><strong>⭐ Bonus Bintang:</strong> Menambah +50 poin ekstra.</li>
+          </ul>
+        </div>
+
+        <div class="bg-slate-900/90 p-4 rounded-2xl border border-slate-700">
+          <h3 class="font-extrabold text-purple-300 text-base mb-1">4. Pintasan Keyboard (Alternatif Layar Sentuh)</h3>
+          <p>Siswa 1: <code>1 2 3 4</code> • Siswa 2: <code>Q W E R</code> • Siswa 3: <code>A S D F</code> • Siswa 4: <code>J K L ;</code></p>
+        </div>
+      </div>
+
+      <div class="px-6 py-4 bg-slate-900 border-t border-slate-700 flex justify-end">
+        <button onclick="closeModal('modal-guide')" class="btn-arcade bg-sky-500 hover:bg-sky-400 text-slate-950 font-extrabold px-6 py-2.5 rounded-xl">
+          Mengerti
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOM DIALOG -->
+  <div id="custom-dialog" class="hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="arcade-panel rounded-2xl max-w-md w-full p-6 border-2 border-amber-400 text-center space-y-4 animate-pop">
+      <h3 id="dialog-title" class="font-display text-2xl font-bold text-white">Konfirmasi</h3>
+      <p id="dialog-message" class="text-sm text-slate-200 font-medium"></p>
+      <div id="dialog-actions" class="flex justify-center gap-3 pt-2"></div>
+    </div>
+  </div>
+
+  <script>
+    const ALL_SUBJECTS = [
+      { id: "PABP", name: "Pendidikan Agama dan Budi Pekerti", icon: "🕌", minGrade: 1 },
+      { id: "Pancasila", name: "Pendidikan Pancasila", icon: "🦅", minGrade: 1 },
+      { id: "BIndo", name: "Bahasa Indonesia", icon: "📖", minGrade: 1 },
+      { id: "MTK", name: "Matematika", icon: "📐", minGrade: 1 },
+      { id: "IPAS", name: "IPAS", icon: "🔬", minGrade: 3, note: "Kurikulum Merdeka mulai Kelas 3" },
+      { id: "PJOK", name: "PJOK", icon: "⚽", minGrade: 1 },
+      { id: "SeniRupa", name: "Seni Rupa", icon: "🎨", minGrade: 1 },
+      { id: "SeniMusik", name: "Seni Musik", icon: "🎵", minGrade: 1 },
+      { id: "SeniTari", name: "Seni Tari", icon: "💃", minGrade: 1 },
+      { id: "SeniTeater", name: "Seni Teater", icon: "🎭", minGrade: 1 },
+      { id: "BInggris", name: "Bahasa Inggris", icon: "🔤", minGrade: 1 },
+      { id: "Mulok", name: "Muatan Lokal", icon: "🌾", minGrade: 1 }
+    ];
+
+    const DEFAULT_QUESTIONS = [
+      // KELAS 1
+      { id: "def-101", grade: 1, subject: "PABP", topic: "Kasih Sayang", difficulty: "Mudah", question: "Sebelum makan dan minum, sebaiknya kita membaca ....", options: ["Doa", "Buku cerita", "Puisi", "Lagu"], answer: 0, explanation: "Berdoa sebelum makan merupakan wujud rasa syukur kepada Tuhan." },
+      { id: "def-102", grade: 1, subject: "Pancasila", topic: "Simbol Pancasila", difficulty: "Mudah", question: "Lambang sila pertama Pancasila adalah ....", options: ["Bintang", "Rantai", "Pohon Beringin", "Padi dan Kapas"], answer: 0, explanation: "Sila pertama Ketuhanan Yang Maha Esa dilambangkan dengan Bintang." },
+      { id: "def-103", grade: 1, subject: "BIndo", topic: "Membaca Permulaan", difficulty: "Mudah", question: "Huruf vokal pada kata 'BOLA' adalah ....", options: ["O dan A", "B dan L", "B dan O", "L dan A"], answer: 0, explanation: "Huruf vokal terdiri dari a, i, u, e, o. Pada kata BOLA terdapat huruf O dan A." },
+      { id: "def-104", grade: 1, subject: "MTK", topic: "Penjumlahan Bilangan", difficulty: "Mudah", question: "Ani memiliki 5 apel, lalu ibu memberi 4 apel lagi. Jumlah apel Ani adalah ....", options: ["9 apel", "8 apel", "10 apel", "7 apel"], answer: 0, explanation: "5 + 4 = 9 apel." },
+      { id: "def-105", grade: 1, subject: "PJOK", topic: "Kebersihan Diri", difficulty: "Mudah", question: "Agar gigi tetap bersih dan sehat, kita harus rajin ....", options: ["Menggosok gigi", "Makan permen", "Tidur larut", "Minum es"], answer: 0, explanation: "Menggosok gigi pagi dan malam menjaga gigi tetap sehat dan bebas kuman." },
+      { id: "def-106", grade: 1, subject: "SeniRupa", topic: "Warna Dasar", difficulty: "Mudah", question: "Warna buah pisang yang sudah matang biasanya adalah ....", options: ["Kuning", "Biru", "Ungu", "Hitam"], answer: 0, explanation: "Buah pisang matang berwarna kuning cerah." },
+      { id: "def-107", grade: 1, subject: "SeniMusik", topic: "Lagu Anak", difficulty: "Mudah", question: "Lagu 'Balonku' menceritakan balon yang meletus berwarna ....", options: ["Hijau", "Merah", "Kuning", "Biru"], answer: 0, explanation: "Pada lirik lagu 'Meletus balon hijau, dor!'." },
+      { id: "def-108", grade: 1, subject: "SeniTari", topic: "Gerak Dasar", difficulty: "Mudah", question: "Gerakan meniru kupu-kupu terbang dilakukan dengan menggerakkan kedua ....", options: ["Tangan", "Kaki", "Kepala", "Lutut"], answer: 0, explanation: "Kedua tangan direntangkan dan dikepakkan seperti sayap kupu-kupu." },
+      { id: "def-109", grade: 1, subject: "SeniTeater", topic: "Ekspresi Wajah", difficulty: "Mudah", question: "Saat merasa senang atau gembira, ekspresi wajah kita adalah ....", options: ["Tersenyum", "Menangis", "Cemberut", "Marah"], answer: 0, explanation: "Tersenyum menunjukkan rasa senang dan ramah." },
+      { id: "def-110", grade: 1, subject: "BInggris", topic: "Numbers", difficulty: "Mudah", question: "Bahasa Inggris dari angka 'Tiga' adalah ....", options: ["Three", "One", "Two", "Four"], answer: 0, explanation: "One (1), Two (2), Three (3), Four (4)." },
+      { id: "def-111", grade: 1, subject: "Mulok", topic: "Bahasa Daerah", difficulty: "Mudah", question: "Dalam bahasa Jawa krama, ucapan terima kasih adalah ....", options: ["Matur nuwun", "Nyuwun sewu", "Monggo", "Sugeng enjang"], answer: 0, explanation: "'Matur nuwun' artinya terima kasih dalam bahasa Jawa." },
+
+      // KELAS 2
+      { id: "def-201", grade: 2, subject: "PABP", topic: "Perilaku Terpuji", difficulty: "Mudah", question: "Jika berbuat salah kepada teman, sikap kita sebaiknya ....", options: ["Meminta maaf", "Menyalahkan teman", "Bersembunyi", "Marah"], answer: 0, explanation: "Meminta maaf dengan tulus adalah perilaku terpuji." },
+      { id: "def-202", grade: 2, subject: "Pancasila", topic: "Aturan di Sekolah", difficulty: "Mudah", question: "Contoh aturan yang harus dipatuhi di sekolah adalah ....", options: ["Datang tepat waktu", "Membuang sampah sembarangan", "Berlari di dalam kelas", "Mencoret tembok"], answer: 0, explanation: "Datang tepat waktu melatih kedisiplinan siswa." },
+      { id: "def-203", grade: 2, subject: "BIndo", topic: "Tanda Baca", difficulty: "Mudah", question: "Kalimat tanya selalu diakhiri dengan tanda baca ....", options: ["Tanya (?)", "Titik (.)", "Seru (!)", "Koma (,)"], answer: 0, explanation: "Tanda tanya (?) digunakan di akhir kalimat pertanyaan." },
+      { id: "def-204", grade: 2, subject: "MTK", topic: "Perkalian Dasar", difficulty: "Mudah", question: "Hasil dari 3 × 4 adalah ....", options: ["12", "7", "10", "15"], answer: 0, explanation: "3 × 4 = 4 + 4 + 4 = 12." },
+      { id: "def-205", grade: 2, subject: "PJOK", topic: "Gerak Lokomotor", difficulty: "Mudah", question: "Gerakan berpindah tempat dari satu titik ke titik lain disebut gerak ....", options: ["Lokomotor", "Nonlokomotor", "Manipulatif", "Keseimbangan"], answer: 0, explanation: "Berjalan, berlari, dan melompat termasuk gerak lokomotor." },
+      { id: "def-206", grade: 2, subject: "SeniRupa", topic: "Bentuk Geometris", difficulty: "Mudah", question: "Bentuk roda sepeda menyerupai bangun datar ....", options: ["Lingkaran", "Segitiga", "Persegi", "Trapesium"], answer: 0, explanation: "Roda berbentuk lingkaran agar dapat berputar lancar." },
+      { id: "def-207", grade: 2, subject: "SeniMusik", topic: "Alat Musik Ritmis", difficulty: "Mudah", question: "Alat musik yang dimainkan dengan cara dipukul adalah ....", options: ["Kendang", "Seruling", "Gitar", "Biola"], answer: 0, explanation: "Kendang adalah alat musik ritmis yang dipukul." },
+      { id: "def-208", grade: 2, subject: "SeniTari", topic: "Irama Tari", difficulty: "Mudah", question: "Menari akan terasa lebih indah jika gerakannya sesuai dengan ....", options: ["Irama musik", "Suara petir", "Teriakan", "Langkah lari"], answer: 0, explanation: "Keselarasan gerak dengan irama musik membuat tarian harmonis." },
+      { id: "def-209", grade: 2, subject: "SeniTeater", topic: "Meniru Suara", difficulty: "Mudah", question: "Dalam bermain peran, suara kucing ditirukan dengan bunyi ....", options: ["Meong", "Guk-guk", "Kukuruyuk", "Mbek"], answer: 0, explanation: "Kucing bersuara meong." },
+      { id: "def-210", grade: 2, subject: "BInggris", topic: "Colors", difficulty: "Mudah", question: "What color is the sky on a sunny day?", options: ["Blue", "Green", "Black", "Brown"], answer: 0, explanation: "Langit cerah berwarna biru (Blue)." },
+      { id: "def-211", grade: 2, subject: "Mulok", topic: "Kearifan Lokal Jember", difficulty: "Mudah", question: "Kabupaten tempat sekolah SDN Kesilir 02 berada adalah ....", options: ["Jember", "Banyuwangi", "Bondowoso", "Lumajang"], answer: 0, explanation: "SDN Kesilir 02 terletak di Kecamatan Wuluhan, Kabupaten Jember." },
+
+      // KELAS 3
+      { id: "def-301", grade: 3, subject: "IPAS", topic: "Wujud Benda", difficulty: "Mudah", question: "Es batu yang dibiarkan di tempat terbuka akan berubah wujud menjadi ....", options: ["Air (cair)", "Gas", "Batu", "Uap panas"], answer: 0, explanation: "Perubahan benda padat menjadi cair disebut mencair." },
+      { id: "def-302", grade: 3, subject: "IPAS", topic: "Makhluk Hidup", difficulty: "Mudah", question: "Tumbuhan hijau membuat makanannya sendiri melalui proses ....", options: ["Fotosintesis", "Pernapasan", "Penguapan", "Pencernaan"], answer: 0, explanation: "Fotosintesis dibantu oleh cahaya matahari dan klorofil." },
+      { id: "def-303", grade: 3, subject: "MTK", topic: "Pecahan Sederhana", difficulty: "Sedang", question: "Sebuah semangka dipotong menjadi 4 bagian sama besar. Setiap bagian bernilai ....", options: ["1/4", "1/2", "1/3", "4/1"], answer: 0, explanation: "1 bagian dari 4 potongan sama besar ditulis 1/4." },
+      { id: "def-304", grade: 3, subject: "BIndo", topic: "Ide Pokok", difficulty: "Sedang", question: "Sinonim atau persamaan kata dari 'rajin' adalah ....", options: ["Giat", "Malas", "Lalai", "Lambat"], answer: 0, explanation: "Rajin memiliki arti yang sama dengan giat atau tekun." },
+      { id: "def-305", grade: 3, subject: "Pancasila", topic: "Gotong Royong", difficulty: "Mudah", question: "Pekerjaan berat di lingkungan sekolah akan terasa ringan jika dikerjakan secara ....", options: ["Gotong royong", "Sendirian", "Terpaksa", "Berebut"], answer: 0, explanation: "Gotong royong mempererat persatuan dan meringankan pekerjaan." },
+      { id: "def-306", grade: 3, subject: "PABP", topic: "Sifat Wajib", difficulty: "Sedang", question: "Sifat jujur artinya berkata dan berbuat sesuai dengan ....", options: ["Kenyataan", "Keinginan", "Khayalan", "Keuntungan"], answer: 0, explanation: "Jujur berarti sesuai antara ucapan dan kenyataan." },
+      { id: "def-307", grade: 3, subject: "PJOK", topic: "Kebugaran Jasmani", difficulty: "Mudah", question: "Sebelum melakukan olahraga inti, kita wajib melakukan ....", options: ["Pemanasan", "Pendinginan", "Tidur siang", "Makan kenyang"], answer: 0, explanation: "Pemanasan mencegah cedera otot saat berolahraga." },
+      { id: "def-308", grade: 3, subject: "SeniRupa", topic: "Karya Dekoratif", difficulty: "Mudah", question: "Unsur utama dalam membuat gambar dekoratif adalah garis, bidang, dan ....", options: ["Warna", "Suara", "Gerak", "Bau"], answer: 0, explanation: "Garis, bidang, dan warna membentuk keindahan gambar dekoratif." },
+      { id: "def-309", grade: 3, subject: "SeniMusik", topic: "Pola Irama", difficulty: "Sedang", question: "Lagu 'Cicak di Dinding' memiliki pola irama yang ....", options: ["Sederhana", "Sangat cepat", "Rumit", "Sedih"], answer: 0, explanation: "Lagu anak-anak umumnya memiliki pola irama sederhana dan mudah diikuti." },
+      { id: "def-310", grade: 3, subject: "SeniTari", topic: "Dinamika Gerak", difficulty: "Mudah", question: "Gerakan menirukan pohon tertiup angin sepoi-sepoi dilakukan secara ....", options: ["Lembut dan pelan", "Kuat dan hentak", "Melompat tinggi", "Berlari cepat"], answer: 0, explanation: "Angin sepoi-sepoi digambarkan dengan gerak lembut." },
+      { id: "def-311", grade: 3, subject: "SeniTeater", topic: "Pantomim", difficulty: "Sedang", question: "Seni pertunjukan tanpa kata-kata yang mengandalkan gerak tubuh dan mimik wajah disebut ....", options: ["Pantomim", "Pidato", "Paduan suara", "Deklamasi"], answer: 0, explanation: "Pantomim berkomunikasi melalui ekspresi dan gerak tubuh." },
+      { id: "def-312", grade: 3, subject: "BInggris", topic: "Daily Activities", difficulty: "Mudah", question: "We say 'Good Morning' when we meet our teacher in the ....", options: ["Morning", "Night", "Evening", "Midnight"], answer: 0, explanation: "'Good Morning' diucapkan pada pagi hari." },
+      { id: "def-313", grade: 3, subject: "Mulok", topic: "Budaya Jawa Timur", difficulty: "Sedang", question: "Bahasa daerah yang digunakan masyarakat di wilayah Jember antara lain bahasa Jawa dan ....", options: ["Madura", "Sunda", "Batak", "Bugis"], answer: 0, explanation: "Masyarakat Jember memiliki kekayaan budaya Pandalungan (Jawa dan Madura)." },
+
+      // KELAS 4
+      { id: "def-401", grade: 4, subject: "IPAS", topic: "Gaya dan Gerak", difficulty: "Sedang", question: "Gaya yang menyebabkan buah mangga jatuh dari pohonnya ke tanah adalah gaya ....", options: ["Gravitasi", "Magnet", "Listrik", "Pegas"], answer: 0, explanation: "Gaya gravitasi bumi menarik semua benda menuju pusat bumi." },
+      { id: "def-402", grade: 4, subject: "IPAS", topic: "Perubahan Energi", difficulty: "Sedang", question: "Pada setrika listrik terjadi perubahan energi listrik menjadi energi ....", options: ["Panas", "Bunyi", "Gerak", "Cahaya"], answer: 0, explanation: "Setrika mengubah energi listrik menjadi energi panas untuk merapikan pakaian." },
+      { id: "def-403", grade: 4, subject: "MTK", topic: "Bangun Datar", difficulty: "Sedang", question: "Sebuah persegi memiliki panjang sisi 8 cm. Keliling persegi tersebut adalah ....", options: ["32 cm", "16 cm", "64 cm", "24 cm"], answer: 0, explanation: "Keliling persegi = 4 × sisi = 4 × 8 = 32 cm." },
+      { id: "def-404", grade: 4, subject: "MTK", topic: "Faktor & Kelipatan", difficulty: "Sedang", question: "Kelipatan persekutuan terkecil (KPK) dari 4 dan 6 adalah ....", options: ["12", "24", "6", "10"], answer: 0, explanation: "Kelipatan 4: 4, 8, 12... Kelipatan 6: 6, 12... KPK = 12." },
+      { id: "def-405", grade: 4, subject: "BIndo", topic: "Kalimat Transitif", difficulty: "Sedang", question: "Kalimat 'Adik membaca buku cerita' memiliki objek yaitu ....", options: ["Buku cerita", "Adik", "Membaca", "Cerita"], answer: 0, explanation: "Subjek: Adik, Predikat: membaca, Objek: buku cerita." },
+      { id: "def-406", grade: 4, subject: "Pancasila", topic: "Keragaman Budaya", difficulty: "Mudah", question: "Semboyan bangsa Indonesia yang bermakna berbeda-beda tetapi tetap satu jua adalah ....", options: ["Bhinneka Tunggal Ika", "Tut Wuri Handayani", "Ing Ngarsa Sung Tuladha", "Merdeka atau Mati"], answer: 0, explanation: "Bhinneka Tunggal Ika tertulis pada pita lambang Garuda Pancasila." },
+      { id: "def-407", grade: 4, subject: "PABP", topic: "Toleransi", difficulty: "Mudah", question: "Sikap menghargai teman yang berbeda agama saat beribadah disebut ....", options: ["Toleransi", "Egois", "Acuh tak acuh", "Sombong"], answer: 0, explanation: "Toleransi menjaga kerukunan antarumat beragama." },
+      { id: "def-408", grade: 4, subject: "PJOK", topic: "Atletik Dasar", difficulty: "Mudah", question: "Nomor lari jarak pendek dalam cabang olahraga atletik disebut juga lari ....", options: ["Sprint", "Maraton", "Estafet", "Halang rintang"], answer: 0, explanation: "Sprint adalah lari cepat jarak pendek seperti 100 meter." },
+      { id: "def-409", grade: 4, subject: "SeniRupa", topic: "Daur Ulang Kreatif", difficulty: "Sedang", question: "Botol plastik bekas dapat dimanfaatkan menjadi karya seni kerajinan berupa ....", options: ["Pot bunga hias", "Makanan ringan", "Air minum", "Kertas tulis"], answer: 0, explanation: "Daur ulang sampah plastik mengurangi pencemaran lingkungan." },
+      { id: "def-410", grade: 4, subject: "SeniMusik", topic: "Alat Musik Melodis", difficulty: "Sedang", question: "Alat musik berikut yang dapat memainkan nada-nada melodi adalah ....", options: ["Pianika", "Drum", "Triangle", "Marakas"], answer: 0, explanation: "Pianika memiliki bilah nada sehingga termasuk alat musik melodis." },
+      { id: "def-411", grade: 4, subject: "SeniTari", topic: "Tari Tradisional", difficulty: "Sedang", question: "Tari Remo berasal dari provinsi ....", options: ["Jawa Timur", "Jawa Barat", "Bali", "Aceh"], answer: 0, explanation: "Tari Remo adalah tarian penyambutan khas Jawa Timur." },
+      { id: "def-412", grade: 4, subject: "SeniTeater", topic: "Tokoh Cerita", difficulty: "Sedang", question: "Tokoh yang memiliki watak baik dalam sebuah cerita drama disebut tokoh ....", options: ["Protagonis", "Antagonis", "Figuran", "Sutradara"], answer: 0, explanation: "Protagonis adalah pemeran berwatak baik, sedangkan antagonis berwatak penentang." },
+      { id: "def-413", grade: 4, subject: "BInggris", topic: "Telling Time", difficulty: "Sedang", question: "'It is seven o'clock' artinya sekarang pukul ....", options: ["07.00", "06.00", "08.00", "11.00"], answer: 0, explanation: "Seven = 7, o'clock = tepat." },
+      { id: "def-414", grade: 4, subject: "Mulok", topic: "Potensi Daerah Jember", difficulty: "Sedang", question: "Komoditas perkebunan terkenal dari Kabupaten Jember yang mendunia adalah ....", options: ["Tembakau dan Kopi", "Apel Malang", "Salak Pondoh", "Cengkeh Maluku"], answer: 0, explanation: "Jember terkenal sebagai penghasil tembakau cerutu berkualitas tinggi dan kopi." },
+
+      // KELAS 5
+      { id: "def-501", grade: 5, subject: "IPAS", topic: "Ekosistem", difficulty: "Sedang", question: "Dalam rantai makanan di sawah, ular berperan sebagai konsumen tingkat ....", options: ["II (kedua)", "I (pertama)", "Produsen", "Pengurai"], answer: 0, explanation: "Padi (produsen) -> Tikus (konsumen I) -> Ular (konsumen II)." },
+      { id: "def-502", grade: 5, subject: "IPAS", topic: "Sifat Cahaya", difficulty: "Sedang", question: "Pensil yang dimasukkan ke dalam gelas berisi air terlihat bengkok karena cahaya dapat ....", options: ["Dibiaskan", "Dipantulkan", "Diuraikan", "Diserap"], answer: 0, explanation: "Pembiasan cahaya terjadi saat cahaya melewati dua medium berbeda kerapatannya." },
+      { id: "def-503", grade: 5, subject: "MTK", topic: "Volume Kubus", difficulty: "Sedang", question: "Volume sebuah kubus yang memiliki panjang rusuk 5 cm adalah ....", options: ["125 cm³", "25 cm³", "75 cm³", "150 cm³"], answer: 0, explanation: "Volume kubus = s × s × s = 5 × 5 × 5 = 125 cm³." },
+      { id: "def-504", grade: 5, subject: "MTK", topic: "Persentase", difficulty: "Sulit", question: "Bentuk persen dari pecahan 3/4 adalah ....", options: ["75%", "25%", "50%", "80%"], answer: 0, explanation: "3/4 × 100% = 75%." },
+      { id: "def-505", grade: 5, subject: "BIndo", topic: "Majas", difficulty: "Sedang", question: "Kalimat 'Angin malam berbisik lembut di telingaku' menggunakan majas ....", options: ["Personifikasi", "Hiperbola", "Metafora", "Simile"], answer: 0, explanation: "Personifikasi mengumpamakan benda mati seolah-olah hidup seperti manusia." },
+      { id: "def-506", grade: 5, subject: "Pancasila", topic: "Musyawarah", difficulty: "Sedang", question: "Pengambilan keputusan bersama demi kepentingan umum sesuai sila ke-4 dilakukan dengan cara ....", options: ["Musyawarah mufakat", "Keputusan ketua saja", "Undian berhadiah", "Pemaksaan"], answer: 0, explanation: "Sila keempat mengutamakan musyawarah untuk mencapai mufakat." },
+      { id: "def-507", grade: 5, subject: "PABP", topic: "Zakat & Sedekah", difficulty: "Sedang", question: "Berbagi sebagian rezeki kepada fakir miskin untuk membersihkan harta disebut ....", options: ["Zakat", "Jual beli", "Pinjaman", "Tabungan"], answer: 0, explanation: "Zakat menyucikan harta dan membantu sesama yang membutuhkan." },
+      { id: "def-508", grade: 5, subject: "PJOK", topic: "Permainan Bola Besar", difficulty: "Mudah", question: "Jumlah pemain inti dalam satu regu permainan bola voli adalah ....", options: ["6 orang", "5 orang", "11 orang", "7 orang"], answer: 0, explanation: "Setiap tim bola voli terdiri atas 6 pemain inti di lapangan." },
+      { id: "def-509", grade: 5, subject: "SeniRupa", topic: "Prinsip Seni Rupa", difficulty: "Sedang", question: "Pengulangan unsur garis, bentuk, atau warna secara teratur dalam karya seni disebut ....", options: ["Ritme (irama)", "Proporsi", "Perspektif", "Tekstur"], answer: 0, explanation: "Ritme menciptakan kesan gerak yang harmonis pada karya visual." },
+      { id: "def-510", grade: 5, subject: "SeniMusik", topic: "Tangga Nada", difficulty: "Sedang", question: "Tangga nada diatonis mayor bersifat gembira dan biasanya diawali serta diakhiri nada ....", options: ["Do", "La", "Mi", "Sol"], answer: 0, explanation: "Tangga nada mayor diawali nada Do (C) dan bernuansa riang." },
+      { id: "def-511", grade: 5, subject: "SeniTari", topic: "Pola Lantai", difficulty: "Sedang", question: "Formasi penari yang berbaris lurus dari depan ke belakang disebut pola lantai ....", options: ["Vertikal", "Horizontal", "Diagonal", "Melingkar"], answer: 0, explanation: "Pola lantai vertikal membentuk garis lurus ke belakang/depan." },
+      { id: "def-512", grade: 5, subject: "SeniTeater", topic: "Naskah Drama", difficulty: "Sedang", question: "Percakapan antartokoh dalam naskah drama disebut ....", options: ["Dialog", "Monolog", "Prolog", "Epilog"], answer: 0, explanation: "Dialog adalah percakapan dua tokoh atau lebih." },
+      { id: "def-513", grade: 5, subject: "BInggris", topic: "Comparison", difficulty: "Sedang", question: "An elephant is ______ than a rabbit.", options: ["Bigger", "Smaller", "Shorter", "Thinner"], answer: 0, explanation: "Gajah lebih besar (bigger) daripada kelinci." },
+      { id: "def-514", grade: 5, subject: "Mulok", topic: "Pariwisata & Budaya Jember", difficulty: "Sedang", question: "Karnaval busana internasional yang terkenal dari Kabupaten Jember adalah ....", options: ["Jember Fashion Carnaval (JFC)", "Jathilan Ponorogo", "Karapan Sapi", "Gandrung Sewu"], answer: 0, explanation: "Jember Fashion Carnaval (JFC) merupakan ikon karnaval kreatif dari Jember." },
+
+      // KELAS 6
+      { id: "def-601", grade: 6, subject: "IPAS", topic: "Tata Surya", difficulty: "Sedang", question: "Planet terbesar dalam sistem tata surya kita adalah ....", options: ["Jupiter", "Mars", "Bumi", "Merkurius"], answer: 0, explanation: "Jupiter adalah planet raksasa gas terbesar di tata surya." },
+      { id: "def-602", grade: 6, subject: "IPAS", topic: "Rangkaian Listrik", difficulty: "Sulit", question: "Jika satu lampu mati dan lampu lainnya tetap menyala, maka rangkaian tersebut disusun secara ....", options: ["Paralel", "Seri", "Terbuka", "Tunggal"], answer: 0, explanation: "Rangkaian paralel memiliki cabang arus sehingga lampu lain tidak ikut padam." },
+      { id: "def-603", grade: 6, subject: "MTK", topic: "Lingkaran", difficulty: "Sulit", question: "Luas lingkaran dengan jari-jari 7 cm (π = 22/7) adalah ....", options: ["154 cm²", "44 cm²", "49 cm²", "22 cm²"], answer: 0, explanation: "Luas = π × r² = 22/7 × 7 × 7 = 154 cm²." },
+      { id: "def-604", grade: 6, subject: "MTK", topic: "Statistika Dasar", difficulty: "Sedang", question: "Nilai ulangan Rani adalah 80, 90, 85, dan 85. Rata-rata nilai Rani adalah ....", options: ["85", "80", "90", "82"], answer: 0, explanation: "(80 + 90 + 85 + 85) / 4 = 340 / 4 = 85." },
+      { id: "def-605", grade: 6, subject: "BIndo", topic: "Teks Pidato", difficulty: "Sedang", question: "Bagian pidato yang berisi ucapan puji syukur dan salam pembuka disebut ....", options: ["Pendahuluan", "Isi pidato", "Penutup", "Kesimpulan"], answer: 0, explanation: "Pendahuluan berisi salam pembuka, sapaan, dan rasa syukur." },
+      { id: "def-606", grade: 6, subject: "Pancasila", topic: "Nilai Pancasila", difficulty: "Sedang", question: "Bangga menggunakan produk buatan dalam negeri merupakan pengamalan Pancasila sila ke- ....", options: ["3 (Persatuan Indonesia)", "1", "2", "4"], answer: 0, explanation: "Cinta tanah air dan produk dalam negeri mencerminkan sila ketiga." },
+      { id: "def-607", grade: 6, subject: "PABP", topic: "Kepemimpinan", difficulty: "Sedang", question: "Amanah artinya dapat dipercaya. Kebalikan dari sifat amanah adalah ....", options: ["Khianat", "Siddiq", "Tabligh", "Fathanah"], answer: 0, explanation: "Khianat berarti ingkar janji atau tidak dapat dipercaya." },
+      { id: "def-608", grade: 6, subject: "PJOK", topic: "Pola Hidup Sehat", difficulty: "Mudah", question: "Zat gizi utama yang berfungsi sebagai sumber energi terbesar bagi tubuh adalah ....", options: ["Karbohidrat", "Vitamin", "Mineral", "Air"], answer: 0, explanation: "Karbohidrat (nasi, roti, jagung) menjadi sumber energi utama tubuh." },
+      { id: "def-609", grade: 6, subject: "SeniRupa", topic: "Patung & Tiga Dimensi", difficulty: "Sedang", question: "Karya seni yang memiliki ukuran panjang, lebar, dan tinggi sehingga dapat dilihat dari segala arah disebut karya ....", options: ["Tiga dimensi", "Dua dimensi", "Satu dimensi", "Grafis datar"], answer: 0, explanation: "Patung, gerabah, dan diorama merupakan contoh karya seni tiga dimensi." },
+      { id: "def-610", grade: 6, subject: "SeniMusik", topic: "Lagu Wajib Nasional", difficulty: "Mudah", question: "Lagu kebangsaan 'Indonesia Raya' diciptakan oleh ....", options: ["W.R. Supratman", "Ismail Marzuki", "Ibu Sud", "C. Simanjuntak"], answer: 0, explanation: "Wage Rudolf Supratman adalah pencipta lagu Indonesia Raya." },
+      { id: "def-611", grade: 6, subject: "SeniTari", topic: "Tari Kreasi Daerah", difficulty: "Sedang", question: "Tari Lahbako yang menggambarkan aktivitas petani tembakau berasal dari daerah ....", options: ["Jember", "Surabaya", "Madura", "Malang"], answer: 0, explanation: "Tari Lahbako adalah tarian khas Kabupaten Jember yang bertema pertanian tembakau." },
+      { id: "def-612", grade: 6, subject: "SeniTeater", topic: "Pementasan", difficulty: "Sedang", question: "Orang yang bertugas mengatur jalannya pementasan drama dan membimbing aktor disebut ....", options: ["Sutradara", "Penata rias", "Penonton", "Kameramen"], answer: 0, explanation: "Sutradara mengarahkan konsep dan akting pemain di panggung." },
+      { id: "def-613", grade: 6, subject: "BInggris", topic: "Past Tense", difficulty: "Sedang", question: "Yesterday, Budi ______ to school by bicycle.", options: ["Went", "Go", "Goes", "Going"], answer: 0, explanation: "Karena terdapat keterangan 'Yesterday' (lampau), kata kerja 'go' menjadi 'went'." },
+      { id: "def-614", grade: 6, subject: "Mulok", topic: "Geografi Lokal Wuluhan", difficulty: "Sedang", question: "Pantai terkenal yang berada di wilayah selatan Kecamatan Wuluhan, Jember adalah ....", options: ["Pantai Papuma & Tanjung Papuma", "Pantai Kuta", "Pantai Parangtritis", "Pantai Ancol"], answer: 0, explanation: "Tanjung Papuma terletak di Desa Lojejer, Kecamatan Wuluhan, Kabupaten Jember." }
+    ];
+
+    const STORAGE_KEYS = {
+      QUESTIONS: "edurunner3d_kesilir02_questions_v1",
+      HISTORY: "edurunner3d_kesilir02_history_v1",
+      SETTINGS: "edurunner3d_kesilir02_settings_v1"
+    };
+
+    const AppState = {
+      questions: [],
+      history: [],
+      settings: {
+        qCount: 10,
+        timerSec: 20,
+        graphics: "medium",
+        cameraMode: "dynamic",
+        musicVol: 40,
+        sfxVol: 80
+      },
+      selectedGrade: 4,
+      selectedSubject: "MTK",
+      playerNames: ["Andi", "Budi", "Citra", "Dewi"]
+    };
+
+    function loadAppStorage() {
+      try {
+        const savedQ = localStorage.getItem(STORAGE_KEYS.QUESTIONS);
+        if (savedQ) {
+          const parsed = JSON.parse(savedQ);
+          AppState.questions = Array.isArray(parsed) && parsed.length > 0 ? parsed : [...DEFAULT_QUESTIONS];
+        } else {
+          AppState.questions = [...DEFAULT_QUESTIONS];
+          localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(AppState.questions));
+        }
+
+        const savedH = localStorage.getItem(STORAGE_KEYS.HISTORY);
+        if (savedH) {
+          AppState.history = JSON.parse(savedH) || [];
+        }
+
+        const savedS = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+        if (savedS) {
+          AppState.settings = { ...AppState.settings, ...JSON.parse(savedS) };
+        }
+      } catch (e) {
+        AppState.questions = [...DEFAULT_QUESTIONS];
+      }
+    }
+
+    function saveQuestionsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.QUESTIONS, JSON.stringify(AppState.questions));
+      } catch (e) {}
+    }
+
+    function saveHistoryToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(AppState.history));
+      } catch (e) {}
+    }
+
+    function saveSettingsToStorage() {
+      try {
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(AppState.settings));
+      } catch (e) {}
+    }
+
+    const AudioEngine = {
+      ctx: null,
+      muted: false,
+      bgmInterval: null,
+      bgmStep: 0,
+
+      init() {
+        if (!this.ctx) {
+          const AudioCtx = window.AudioContext || window.webkitAudioContext;
+          if (AudioCtx) {
+            this.ctx = new AudioCtx();
+          }
+        }
+        if (this.ctx && this.ctx.state === "suspended") {
+          this.ctx.resume();
+        }
+      },
+
+      toggleMute() {
+        this.init();
+        this.muted = !this.muted;
+        const icon = this.muted ? "🔇" : "🔊";
+        const hBtn = document.getElementById("mute-icon-home");
+        const gBtn = document.getElementById("btn-mute-game");
+        if (hBtn) hBtn.textContent = icon;
+        if (gBtn) gBtn.textContent = icon;
+        if (this.muted) {
+          this.stopBGM();
+        } else if (GameEngine.isRunning) {
+          this.startBGM();
+        }
+      },
+
+      playTone(freq, duration, type = "sine", volScale = 1, delay = 0) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        const sfxGain = (AppState.settings.sfxVol / 100) * 0.25 * volScale;
+        if (sfxGain <= 0.001) return;
+
+        const now = this.ctx.currentTime + delay;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, now);
+
+        gain.gain.setValueAtTime(0.001, now);
+        gain.gain.exponentialRampToValueAtTime(sfxGain, now + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        osc.connect(gain);
+        gain.connect(this.ctx.destination);
+        osc.start(now);
+        osc.stop(now + duration + 0.02);
+      },
+
+      playCorrect() {
+        this.playTone(523.25, 0.12, "triangle", 1.0, 0);
+        this.playTone(659.25, 0.12, "triangle", 1.0, 0.08);
+        this.playTone(783.99, 0.22, "triangle", 1.1, 0.16);
+      },
+
+      playWrong() {
+        this.playTone(220, 0.18, "sawtooth", 0.7, 0);
+        this.playTone(175, 0.25, "sawtooth", 0.7, 0.14);
+      },
+
+      playCountdown(isGo = false) {
+        if (isGo) {
+          this.playTone(880, 0.35, "square", 0.9, 0);
+        } else {
+          this.playTone(440, 0.16, "triangle", 0.8, 0);
+        }
+      },
+
+      playPowerUp() {
+        this.playTone(587.33, 0.09, "sine", 1, 0);
+        this.playTone(783.99, 0.09, "sine", 1, 0.07);
+        this.playTone(1046.5, 0.2, "sine", 1.1, 0.14);
+      },
+
+      playObstacle() {
+        this.playTone(140, 0.22, "sawtooth", 0.85, 0);
+      },
+
+      playFinish() {
+        const notes = [523.25, 659.25, 783.99, 1046.5];
+        notes.forEach((n, idx) => this.playTone(n, 0.18, "triangle", 1.1, idx * 0.1));
+      },
+
+      playVictory() {
+        const melody = [
+          { f: 523.25, d: 0.14, t: 0.0 },
+          { f: 523.25, d: 0.14, t: 0.16 },
+          { f: 523.25, d: 0.14, t: 0.32 },
+          { f: 659.25, d: 0.35, t: 0.48 },
+          { f: 587.33, d: 0.18, t: 0.86 },
+          { f: 659.25, d: 0.18, t: 1.06 },
+          { f: 783.99, d: 0.5,  t: 1.26 }
+        ];
+        melody.forEach(m => this.playTone(m.f, m.d, "triangle", 1.2, m.t));
+      },
+
+      startBGM() {
+        this.stopBGM();
+        if (this.muted) return;
+        this.init();
+        const scale = [261.63, 293.66, 329.63, 392.00, 440.00, 392.00, 329.63, 293.66];
+        this.bgmStep = 0;
+        this.bgmInterval = setInterval(() => {
+          if (this.muted || !this.ctx || AppState.settings.musicVol <= 0) return;
+          const vol = (AppState.settings.musicVol / 100) * 0.07;
+          const freq = scale[this.bgmStep % scale.length];
+          const now = this.ctx.currentTime;
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = "sine";
+          osc.frequency.setValueAtTime(freq, now);
+          gain.gain.setValueAtTime(0.001, now);
+          gain.gain.exponentialRampToValueAtTime(vol, now + 0.02);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.22);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start(now);
+          osc.stop(now + 0.24);
+          this.bgmStep++;
+        }, 280);
+      },
+
+      stopBGM() {
+        if (this.bgmInterval) {
+          clearInterval(this.bgmInterval);
+          this.bgmInterval = null;
+        }
+      }
+    };
+
+    const Arena3D = {
+      scene: null,
+      camera: null,
+      renderer: null,
+      runners: [],
+      obstacles: [],
+      powerups: [],
+      confettiParticles: [],
+      trackLength: 320,
+      laneX: [-5.4, -1.8, 1.8, 5.4],
+      playerColors: [0x2563eb, 0xdc2626, 0xf59e0b, 0x16a34a],
+      animTime: 0,
+      isDragging: false,
+      prevMouse: { x: 0, y: 0 },
+      camOrbitOffset: { x: 0, y: 0 },
+
+      init() {
+        const container = document.getElementById("canvas-container");
+        this.scene = new THREE.Scene();
+        this.scene.background = new THREE.Color(0x7dd3fc);
+        this.scene.fog = new THREE.Fog(0xbae6fd, 60, 220);
+
+        const aspect = window.innerWidth / window.innerHeight;
+        this.camera = new THREE.PerspectiveCamera(52, aspect, 0.1, 400);
+        this.camera.position.set(0, 11, -14);
+        this.camera.lookAt(0, 2, 16);
+
+        this.renderer = new THREE.WebGLRenderer({ antialias: AppState.settings.graphics !== "low", powerPreference: "high-performance" });
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+        this.renderer.setPixelRatio(AppState.settings.graphics === "low" ? 1 : Math.min(window.devicePixelRatio, 2));
+        this.renderer.shadowMap.enabled = AppState.settings.graphics === "high";
+        container.innerHTML = "";
+        container.appendChild(this.renderer.domElement);
+
+        this.setupLights();
+        this.buildEnvironment();
+        this.buildRunners();
+        this.setupCameraDrag();
+
+        window.addEventListener("resize", () => this.onResize());
+      },
+
+      setupLights() {
+        const hemiLight = new THREE.HemisphereLight(0xffffff, 0x4ade80, 0.95);
+        hemiLight.position.set(0, 50, 0);
+        this.scene.add(hemiLight);
+
+        const dirLight = new THREE.DirectionalLight(0xfffbeb, 0.95);
+        dirLight.position.set(25, 45, -20);
+        if (AppState.settings.graphics === "high") {
+          dirLight.castShadow = true;
+          dirLight.shadow.mapSize.width = 1024;
+          dirLight.shadow.mapSize.height = 1024;
+        }
+        this.scene.add(dirLight);
+      },
+
+      buildEnvironment() {
+        const grassGeo = new THREE.PlaneGeometry(240, this.trackLength + 140);
+        const grassMat = new THREE.MeshLambertMaterial({ color: 0x4ade80 });
+        const grass = new THREE.Mesh(grassGeo, grassMat);
+        grass.rotation.x = -Math.PI / 2;
+        grass.position.set(0, -0.05, this.trackLength / 2);
+        this.scene.add(grass);
+
+        const trackTotalWidth = 15.2;
+        const trackGeo = new THREE.BoxGeometry(trackTotalWidth, 0.15, this.trackLength + 30);
+        const trackMat = new THREE.MeshLambertMaterial({ color: 0xea580c });
+        const trackMesh = new THREE.Mesh(trackGeo, trackMat);
+        trackMesh.position.set(0, 0, this.trackLength / 2);
+        this.scene.add(trackMesh);
+
+        const dividerXs = [-7.2, -3.6, 0, 3.6, 7.2];
+        const lineGeo = new THREE.BoxGeometry(0.18, 0.18, this.trackLength + 30);
+        const lineMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        dividerXs.forEach(xPos => {
+          const line = new THREE.Mesh(lineGeo, lineMat);
+          line.position.set(xPos, 0.02, this.trackLength / 2);
+          this.scene.add(line);
+        });
+
+        this.laneX.forEach((lx, idx) => {
+          const padGeo = new THREE.BoxGeometry(3.2, 0.19, 3.5);
+          const padMat = new THREE.MeshLambertMaterial({ color: this.playerColors[idx] });
+          const pad = new THREE.Mesh(padGeo, padMat);
+          pad.position.set(lx, 0.02, 0);
+          this.scene.add(pad);
+        });
+
+        this.buildArchBanner(0, "START • SDN KESILIR 02", 0x1e293b, 0xfbbf24);
+        this.buildFinishLine(this.trackLength);
+        this.buildSchoolBuilding(-22, 12);
+
+        for (let z = -10; z <= this.trackLength + 30; z += 18) {
+          this.buildTree(-12 - (z % 7), z);
+          this.buildTree(12 + ((z + 5) % 7), z + 6);
+        }
+
+        for (let i = 0; i < 14; i++) {
+          this.buildCloud(-50 + (i * 11) % 100, 26 + (i % 4) * 4, i * 26);
+        }
+      },
+
+      createTextTexture(text, bgColorHex, textColorHex) {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1024;
+        canvas.height = 192;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#" + bgColorHex.toString(16).padStart(6, "0");
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.strokeStyle = "#ffffff";
+        ctx.lineWidth = 10;
+        ctx.strokeRect(8, 8, canvas.width - 16, canvas.height - 16);
+
+        ctx.fillStyle = "#" + textColorHex.toString(16).padStart(6, "0");
+        ctx.font = "bold 56px sans-serif";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(text, canvas.width / 2, canvas.height / 2);
+
+        return new THREE.CanvasTexture(canvas);
+      },
+
+      buildArchBanner(zPos, label, bgHex, textHex) {
+        const pillarGeo = new THREE.BoxGeometry(0.6, 6.5, 0.6);
+        const pillarMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+
+        const leftPillar = new THREE.Mesh(pillarGeo, pillarMat);
+        leftPillar.position.set(-7.8, 3.25, zPos);
+        this.scene.add(leftPillar);
+
+        const rightPillar = new THREE.Mesh(pillarGeo, pillarMat);
+        rightPillar.position.set(7.8, 3.25, zPos);
+        this.scene.add(rightPillar);
+
+        const tex = this.createTextTexture(label, bgHex, textHex);
+        const boardGeo = new THREE.BoxGeometry(16.4, 2.1, 0.5);
+        const boardMat = new THREE.MeshBasicMaterial({ map: tex });
+        const board = new THREE.Mesh(boardGeo, boardMat);
+        board.position.set(0, 6.2, zPos);
+        this.scene.add(board);
+      },
+
+      buildFinishLine(zPos) {
+        const rows = 2;
+        const cols = 16;
+        const sqSize = 15.2 / cols;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            const isBlack = (r + c) % 2 === 0;
+            const sqGeo = new THREE.BoxGeometry(sqSize, 0.2, sqSize);
+            const sqMat = new THREE.MeshBasicMaterial({ color: isBlack ? 0x0f172a : 0xffffff });
+            const sq = new THREE.Mesh(sqGeo, sqMat);
+            sq.position.set(-7.6 + sqSize / 2 + c * sqSize, 0.03, zPos - sqSize / 2 + r * sqSize);
+            this.scene.add(sq);
+          }
+        }
+        this.buildArchBanner(zPos, "GARIS FINISH • JUARA", 0x059669, 0xffffff);
+      },
+
+      buildSchoolBuilding(x, z) {
+        const group = new THREE.Group();
+        const wall = new THREE.Mesh(
+          new THREE.BoxGeometry(14, 6, 9),
+          new THREE.MeshLambertMaterial({ color: 0xfef3c7 })
+        );
+        wall.position.y = 3;
+        group.add(wall);
+
+        const roof = new THREE.Mesh(
+          new THREE.ConeGeometry(10.5, 3.5, 4),
+          new THREE.MeshLambertMaterial({ color: 0xdc2626 })
+        );
+        roof.position.y = 7.75;
+        roof.rotation.y = Math.PI / 4;
+        group.add(roof);
+
+        const signTex = this.createTextTexture("SDN KESILIR 02", 0x1e3a8a, 0xfbbf24);
+        const sign = new THREE.Mesh(
+          new THREE.BoxGeometry(10, 1.6, 0.3),
+          new THREE.MeshBasicMaterial({ map: signTex })
+        );
+        sign.position.set(0, 5.2, 4.6);
+        group.add(sign);
+
+        group.position.set(x, 0, z);
+        group.rotation.y = 0.35;
+        this.scene.add(group);
+      },
+
+      buildTree(x, z) {
+        const tree = new THREE.Group();
+        const trunk = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.35, 0.5, 2.4, 7),
+          new THREE.MeshLambertMaterial({ color: 0x78350f })
+        );
+        trunk.position.y = 1.2;
+        tree.add(trunk);
+
+        const leaves = new THREE.Mesh(
+          new THREE.ConeGeometry(2.1, 4.2, 8),
+          new THREE.MeshLambertMaterial({ color: 0x15803d })
+        );
+        leaves.position.y = 3.8;
+        tree.add(leaves);
+
+        tree.position.set(x, 0, z);
+        this.scene.add(tree);
+      },
+
+      buildCloud(x, y, z) {
+        const cloud = new THREE.Group();
+        const mat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+        const b1 = new THREE.Mesh(new THREE.SphereGeometry(2.2, 8, 8), mat);
+        const b2 = new THREE.Mesh(new THREE.SphereGeometry(1.7, 8, 8), mat);
+        b2.position.set(2, -0.3, 0);
+        const b3 = new THREE.Mesh(new THREE.SphereGeometry(1.6, 8, 8), mat);
+        b3.position.set(-1.9, -0.4, 0);
+        cloud.add(b1, b2, b3);
+        cloud.position.set(x, y, z);
+        this.scene.add(cloud);
+      },
+
+      buildRunners() {
+        this.runners.forEach(r => this.scene.remove(r.root));
+        this.runners = [];
+
+        this.laneX.forEach((xPos, idx) => {
+          const colorHex = this.playerColors[idx];
+          const root = new THREE.Group();
+
+          const torso = new THREE.Mesh(
+            new THREE.BoxGeometry(1.15, 1.35, 0.75),
+            new THREE.MeshLambertMaterial({ color: colorHex })
+          );
+          torso.position.y = 1.75;
+          root.add(torso);
+
+          const head = new THREE.Mesh(
+            new THREE.SphereGeometry(0.58, 14, 14),
+            new THREE.MeshLambertMaterial({ color: 0xfde68a })
+          );
+          head.position.y = 2.95;
+          root.add(head);
+
+          const cap = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.56, 0.6, 0.3, 12),
+            new THREE.MeshLambertMaterial({ color: colorHex })
+          );
+          cap.position.y = 3.35;
+          root.add(cap);
+
+          const eyeMat = new THREE.MeshBasicMaterial({ color: 0x0f172a });
+          const leftEye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), eyeMat);
+          leftEye.position.set(-0.2, 3.0, 0.52);
+          const rightEye = new THREE.Mesh(new THREE.SphereGeometry(0.08, 6, 6), eyeMat);
+          rightEye.position.set(0.2, 3.0, 0.52);
+          root.add(leftEye, rightEye);
+
+          const armGeo = new THREE.BoxGeometry(0.32, 0.95, 0.32);
+          const armMat = new THREE.MeshLambertMaterial({ color: 0xfde68a });
+          const leftArm = new THREE.Mesh(armGeo, armMat);
+          leftArm.position.set(-0.78, 1.85, 0);
+          const rightArm = new THREE.Mesh(armGeo, armMat);
+          rightArm.position.set(0.78, 1.85, 0);
+          root.add(leftArm, rightArm);
+
+          const legGeo = new THREE.BoxGeometry(0.38, 1.05, 0.38);
+          const legMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
+          const leftLeg = new THREE.Mesh(legGeo, legMat);
+          leftLeg.position.set(-0.32, 0.55, 0);
+          const rightLeg = new THREE.Mesh(legGeo, legMat);
+          rightLeg.position.set(0.32, 0.55, 0);
+          root.add(leftLeg, rightLeg);
+
+          const shieldMesh = new THREE.Mesh(
+            new THREE.SphereGeometry(1.9, 16, 16),
+            new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.32 })
+          );
+          shieldMesh.position.y = 1.9;
+          shieldMesh.visible = false;
+          root.add(shieldMesh);
+
+          const turboMesh = new THREE.Mesh(
+            new THREE.ConeGeometry(0.55, 1.6, 8),
+            new THREE.MeshBasicMaterial({ color: 0xf97316 })
+          );
+          turboMesh.rotation.x = -Math.PI / 2;
+          turboMesh.position.set(0, 1.6, -1.1);
+          turboMesh.visible = false;
+          root.add(turboMesh);
+
+          root.position.set(xPos, 0, 0);
+          this.scene.add(root);
+
+          this.runners.push({
+            root,
+            torso,
+            head,
+            leftArm,
+            rightArm,
+            leftLeg,
+            rightLeg,
+            shieldMesh,
+            turboMesh,
+            jumpY: 0,
+            jumpVel: 0,
+            stumbleTimer: 0
+          });
+        });
+      },
+
+      spawnTrackItems() {
+        this.obstacles.forEach(o => this.scene.remove(o.mesh));
+        this.powerups.forEach(p => this.scene.remove(p.mesh));
+        this.obstacles = [];
+        this.powerups = [];
+
+        const obstacleTypes = ["rock", "box", "pit", "bar", "moving"];
+        const powerTypes = ["turbo", "shield", "magnet", "star"];
+
+        let zCursor = 28;
+        let idx = 0;
+        while (zCursor < this.trackLength - 22) {
+          const type = obstacleTypes[idx % obstacleTypes.length];
+          this.laneX.forEach((lx, laneIdx) => {
+            const mesh = this.createObstacleMesh(type);
+            mesh.position.set(lx, 0, zCursor);
+            this.scene.add(mesh);
+            this.obstacles.push({
+              mesh,
+              type,
+              lane: laneIdx,
+              baseX: lx,
+              z: zCursor,
+              hitBy: new Set()
+            });
+          });
+
+          const pZ = zCursor + 17;
+          if (pZ < this.trackLength - 15) {
+            const pType = powerTypes[idx % powerTypes.length];
+            this.laneX.forEach((lx, laneIdx) => {
+              const pMesh = this.createPowerUpMesh(pType);
+              pMesh.position.set(lx, 1.4, pZ);
+              this.scene.add(pMesh);
+              this.powerups.push({
+                mesh: pMesh,
+                type: pType,
+                lane: laneIdx,
+                z: pZ,
+                collectedBy: new Set()
+              });
+            });
+          }
+
+          zCursor += 36;
+          idx++;
+        }
+      },
+
+      createObstacleMesh(type) {
+        const group = new THREE.Group();
+        if (type === "rock") {
+          const m = new THREE.Mesh(
+            new THREE.DodecahedronGeometry(0.75, 0),
+            new THREE.MeshLambertMaterial({ color: 0x64748b })
+          );
+          m.position.y = 0.65;
+          group.add(m);
+        } else if (type === "box") {
+          const m = new THREE.Mesh(
+            new THREE.BoxGeometry(1.3, 1.1, 1.1),
+            new THREE.MeshLambertMaterial({ color: 0xb45309 })
+          );
+          m.position.y = 0.55;
+          group.add(m);
+        } else if (type === "pit") {
+          const m = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.95, 0.95, 0.12, 14),
+            new THREE.MeshBasicMaterial({ color: 0x0f172a })
+          );
+          m.position.y = 0.08;
+          group.add(m);
+        } else if (type === "bar") {
+          const bar = new THREE.Mesh(
+            new THREE.BoxGeometry(2.6, 0.32, 0.32),
+            new THREE.MeshLambertMaterial({ color: 0xef4444 })
+          );
+          bar.position.y = 0.95;
+          group.add(bar);
+        } else {
+          const m = new THREE.Mesh(
+            new THREE.CylinderGeometry(0.55, 0.55, 1.3, 10),
+            new THREE.MeshLambertMaterial({ color: 0xe11d48 })
+          );
+          m.position.y = 0.65;
+          group.add(m);
+        }
+        return group;
+      },
+
+      createPowerUpMesh(type) {
+        const colors = {
+          turbo: 0xf97316,
+          shield: 0x38bdf8,
+          magnet: 0xc084fc,
+          star: 0xfacc15
+        };
+        const geo = type === "star"
+          ? new THREE.OctahedronGeometry(0.65, 0)
+          : new THREE.TorusGeometry(0.52, 0.18, 8, 16);
+        const mat = new THREE.MeshLambertMaterial({ color: colors[type] || 0xfacc15 });
+        return new THREE.Mesh(geo, mat);
+      },
+
+      spawnConfetti() {
+        this.clearConfetti();
+        const palette = [0x3b82f6, 0xef4444, 0xfacc15, 0x22c55e, 0xa855f7];
+        for (let i = 0; i < 90; i++) {
+          const mesh = new THREE.Mesh(
+            new THREE.PlaneGeometry(0.45, 0.45),
+            new THREE.MeshBasicMaterial({ color: palette[i % palette.length], side: THREE.DoubleSide })
+          );
+          mesh.position.set((Math.random() - 0.5) * 20, 8 + Math.random() * 10, this.trackLength - 5 + (Math.random() - 0.5) * 14);
+          this.scene.add(mesh);
+          this.confettiParticles.push({
+            mesh,
+            vy: -0.05 - Math.random() * 0.08,
+            vr: (Math.random() - 0.5) * 0.15
+          });
+        }
+      },
+
+      clearConfetti() {
+        this.confettiParticles.forEach(c => this.scene.remove(c.mesh));
+        this.confettiParticles = [];
+      },
+
+      setupCameraDrag() {
+        const dom = this.renderer.domElement;
+        dom.addEventListener("mousedown", e => {
+          this.isDragging = true;
+          this.prevMouse = { x: e.clientX, y: e.clientY };
+        });
+        window.addEventListener("mouseup", () => {
+          this.isDragging = false;
+        });
+        window.addEventListener("mousemove", e => {
+          if (!this.isDragging) return;
+          const dx = e.clientX - this.prevMouse.x;
+          const dy = e.clientY - this.prevMouse.y;
+          this.camOrbitOffset.x = Math.max(-10, Math.min(10, this.camOrbitOffset.x - dx * 0.03));
+          this.camOrbitOffset.y = Math.max(-3, Math.min(8, this.camOrbitOffset.y + dy * 0.03));
+          this.prevMouse = { x: e.clientX, y: e.clientY };
+        });
+      },
+
+      update(dt) {
+        this.animTime += dt;
+
+        this.obstacles.forEach(o => {
+          if (o.type === "moving") {
+            o.mesh.position.x = o.baseX + Math.sin(this.animTime * 2.5 + o.z) * 1.1;
+          }
+        });
+        this.powerups.forEach(p => {
+          p.mesh.rotation.y += dt * 2.5;
+          p.mesh.position.y = 1.4 + Math.sin(this.animTime * 3 + p.z) * 0.25;
+        });
+
+        this.confettiParticles.forEach(c => {
+          c.mesh.position.y += c.vy;
+          c.mesh.rotation.x += c.vr;
+          c.mesh.rotation.y += c.vr;
+          if (c.mesh.position.y < 0.2) c.mesh.position.y = 14;
+        });
+
+        if (GameEngine.isRunning) {
+          let maxZ = 0;
+          let avgZ = 0;
+
+          GameEngine.players.forEach((p, idx) => {
+            const r = this.runners[idx];
+            if (!r) return;
+
+            r.root.position.z = p.distance;
+            if (p.distance > maxZ) maxZ = p.distance;
+            avgZ += p.distance;
+
+            if (r.jumpY > 0 || r.jumpVel !== 0) {
+              r.jumpY += r.jumpVel * dt;
+              r.jumpVel -= 26 * dt;
+              if (r.jumpY <= 0) {
+                r.jumpY = 0;
+                r.jumpVel = 0;
+              }
+            }
+            r.root.position.y = r.jumpY;
+
+            r.shieldMesh.visible = p.shieldTimer > 0;
+            r.turboMesh.visible = p.turboTimer > 0;
+
+            if (p.finished) {
+              r.root.position.y = Math.abs(Math.sin(this.animTime * 6 + idx)) * 1.1;
+              r.leftArm.rotation.x = Math.PI * 0.85;
+              r.rightArm.rotation.x = Math.PI * 0.85;
+            } else if (r.stumbleTimer > 0) {
+              r.stumbleTimer -= dt;
+              r.root.rotation.z = Math.sin(this.animTime * 25) * 0.28;
+            } else {
+              r.root.rotation.z = 0;
+              const stride = Math.sin(this.animTime * (6 + p.speed * 1.4) + idx);
+              r.leftLeg.rotation.x = stride * 0.85;
+              r.rightLeg.rotation.x = -stride * 0.85;
+              r.leftArm.rotation.x = -stride * 0.75;
+              r.rightArm.rotation.x = stride * 0.75;
+            }
+          });
+
+          avgZ /= 4;
+          const focusZ = avgZ * 0.55 + maxZ * 0.45;
+          const mode = AppState.settings.cameraMode;
+
+          if (mode === "broadcast") {
+            this.camera.position.lerp(new THREE.Vector3(14 + this.camOrbitOffset.x, 14 + this.camOrbitOffset.y, focusZ - 6), 0.08);
+            this.camera.lookAt(0, 1.5, focusZ + 12);
+          } else if (mode === "chase") {
+            this.camera.position.lerp(new THREE.Vector3(0 + this.camOrbitOffset.x, 8.5 + this.camOrbitOffset.y, focusZ - 13), 0.08);
+            this.camera.lookAt(0, 2, focusZ + 16);
+          } else {
+            const spread = Math.max(0, maxZ - avgZ);
+            this.camera.position.lerp(new THREE.Vector3(0 + this.camOrbitOffset.x, 11.5 + spread * 0.25 + this.camOrbitOffset.y, focusZ - 14 - spread * 0.3), 0.08);
+            this.camera.lookAt(0, 1.2, focusZ + 14);
+          }
+        } else {
+          const orbitAngle = this.animTime * 0.35;
+          this.camera.position.set(Math.sin(orbitAngle) * 14, 9.5, -11 + Math.cos(orbitAngle) * 4);
+          this.camera.lookAt(0, 2.2, 10);
+
+          this.runners.forEach((r, idx) => {
+            const stride = Math.sin(this.animTime * 7 + idx * 1.2);
+            r.root.position.set(this.laneX[idx], Math.abs(stride) * 0.15, 2);
+            r.leftLeg.rotation.x = stride * 0.7;
+            r.rightLeg.rotation.x = -stride * 0.7;
+            r.leftArm.rotation.x = -stride * 0.6;
+            r.rightArm.rotation.x = stride * 0.6;
+          });
+        }
+
+        this.renderer.render(this.scene, this.camera);
+      },
+
+      onResize() {
+        if (!this.renderer || !this.camera) return;
+        this.camera.aspect = window.innerWidth / window.innerHeight;
+        this.camera.updateProjectionMatrix();
+        this.renderer.setSize(window.innerWidth, window.innerHeight);
+      }
+    };
+
+    const GameEngine = {
+      isRunning: false,
+      isCountdown: false,
+      roundLocked: false,
+      matchStartTime: 0,
+      roundTimer: 20,
+      roundInterval: null,
+      nextRoundTimeout: null,
+      questionsPool: [],
+      currentQIndex: 0,
+      currentQuestion: null,
+      players: [],
+      finishOrderCount: 0,
+      matchLogs: [],
+
+      initPlayers() {
+        const colors = ["Biru", "Merah", "Kuning", "Hijau"];
+        this.players = AppState.playerNames.map((name, idx) => ({
+          id: idx,
+          name: name.trim() || `Siswa ${idx + 1}`,
+          colorName: colors[idx],
+          score: 0,
+          distance: 0,
+          baseSpeed: 2.2,
+          speed: 2.2,
+          boostTimer: 0,
+          slowTimer: 0,
+          turboTimer: 0,
+          shieldTimer: 0,
+          magnetTimer: 0,
+          correctCount: 0,
+          wrongCount: 0,
+          unansweredCount: 0,
+          answeredThisRound: false,
+          selectedOption: null,
+          finished: false,
+          finishTime: null,
+          rank: idx + 1
+        }));
+        this.finishOrderCount = 0;
+        this.matchLogs = [];
+      },
+
+      prepareQuestionPool() {
+        let matching = AppState.questions.filter(
+          q => Number(q.grade) === Number(AppState.selectedGrade) && q.subject === AppState.selectedSubject
+        );
+
+        if (matching.length < AppState.settings.qCount) {
+          const sameGrade = AppState.questions.filter(
+            q => Number(q.grade) === Number(AppState.selectedGrade) && q.subject !== AppState.selectedSubject
+          );
+          matching = [...matching, ...this.shuffleArray(sameGrade)];
+        }
+
+        if (matching.length < AppState.settings.qCount) {
+          const others = AppState.questions.filter(q => !matching.some(m => m.id === q.id));
+          matching = [...matching, ...this.shuffleArray(others)];
+        }
+
+        const selected = this.shuffleArray(matching).slice(0, AppState.settings.qCount);
+
+        this.questionsPool = selected.map(q => {
+          const indexedOpts = q.options.map((text, idx) => ({
+            text,
+            isCorrect: idx === Number(q.answer)
+          }));
+          const shuffledOpts = this.shuffleArray(indexedOpts);
+          const newAnswerIdx = shuffledOpts.findIndex(o => o.isCorrect);
+          return {
+            ...q,
+            shuffledOptions: shuffledOpts.map(o => o.text),
+            correctIndex: newAnswerIdx
+          };
+        });
+      },
+
+      shuffleArray(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      },
+
+      startMatch() {
+        AudioEngine.init();
+        this.stopTimers();
+        Arena3D.clearConfetti();
+        this.initPlayers();
+        this.prepareQuestionPool();
+
+        if (this.questionsPool.length === 0) {
+          showDialog("Bank Soal Kosong", "Belum ada soal tersedia. Silakan tambahkan soal di menu Bank Soal.");
+          return;
+        }
+
+        Arena3D.trackLength = Math.max(180, this.questionsPool.length * 28);
+        Arena3D.buildEnvironment();
+        Arena3D.buildRunners();
+        Arena3D.spawnTrackItems();
+
+        document.getElementById("screen-home").classList.add("hidden");
+        document.getElementById("modal-results").classList.add("hidden");
+        document.getElementById("screen-game").classList.remove("hidden");
+
+        const subjObj = ALL_SUBJECTS.find(s => s.id === AppState.selectedSubject);
+        document.getElementById("hud-subject-info").textContent = `Kelas ${AppState.selectedGrade} • ${subjObj ? subjObj.name : AppState.selectedSubject}`;
+
+        this.players.forEach((p, idx) => {
+          document.getElementById(`p-name-${idx}`).textContent = p.name;
+          document.getElementById(`p-score-${idx}`).textContent = "0";
+          document.getElementById(`p-status-${idx}`).textContent = "Bersiap...";
+          document.getElementById(`p-power-${idx}`).textContent = "";
+        });
+
+        this.currentQIndex = 0;
+        this.isRunning = false;
+        this.isCountdown = true;
+
+        this.runStartCountdown(() => {
+          this.isCountdown = false;
+          this.isRunning = true;
+          this.matchStartTime = performance.now();
+          AudioEngine.startBGM();
+          this.loadRound(0);
+        });
+      },
+
+      runStartCountdown(onComplete) {
+        const overlay = document.getElementById("countdown-overlay");
+        const numEl = document.getElementById("countdown-number");
+        overlay.classList.remove("hidden");
+
+        const steps = ["3", "2", "1", "MULAI!"];
+        let stepIdx = 0;
+
+        const tick = () => {
+          numEl.textContent = steps[stepIdx];
+          const isGo = stepIdx === 3;
+          AudioEngine.playCountdown(isGo);
+          if (isGo) {
+            setTimeout(() => {
+              overlay.classList.add("hidden");
+              onComplete();
+            }, 650);
+          } else {
+            stepIdx++;
+            setTimeout(tick, 800);
+          }
+        };
+        tick();
+      },
+
+      loadRound(qIdx) {
+        if (!this.isRunning) return;
+        if (qIdx >= this.questionsPool.length) {
+          this.finishMatch();
+          return;
+        }
+
+        this.currentQIndex = qIdx;
+        this.currentQuestion = this.questionsPool[qIdx];
+        this.roundLocked = false;
+        this.roundTimer = Number(AppState.settings.timerSec);
+
+        this.players.forEach((p, idx) => {
+          p.answeredThisRound = false;
+          p.selectedOption = null;
+          this.resetPlayerButtons(idx);
+          const statusEl = document.getElementById(`p-status-${idx}`);
+          statusEl.textContent = p.finished ? "🏁 Sudah Finish!" : "Pilih jawaban!";
+          statusEl.className = "font-bold text-white";
+        });
+
+        document.getElementById("hud-q-counter").textContent = `${qIdx + 1} / ${this.questionsPool.length}`;
+        const subjObj = ALL_SUBJECTS.find(s => s.id === this.currentQuestion.subject);
+        document.getElementById("quiz-meta-badge").textContent =
+          `${subjObj ? subjObj.name : this.currentQuestion.subject} • ${this.currentQuestion.topic || "Umum"} • ${this.currentQuestion.difficulty}`;
+        document.getElementById("quiz-round-status").textContent = "Keempat siswa dapat menjawab bersamaan!";
+        document.getElementById("quiz-question-text").textContent = this.currentQuestion.question;
+        document.getElementById("round-explanation-bar").classList.add("hidden");
+
+        for (let i = 0; i < 4; i++) {
+          const card = document.getElementById(`opt-card-${i}`);
+          card.className = "bg-slate-100 border border-slate-300 rounded-lg px-2.5 py-1 flex items-center gap-1.5";
+          document.getElementById(`opt-text-${i}`).textContent = this.currentQuestion.shuffledOptions[i];
+        }
+
+        this.updateTimerDisplay();
+        if (this.roundInterval) clearInterval(this.roundInterval);
+        this.roundInterval = setInterval(() => {
+          if (!this.isRunning || this.roundLocked) return;
+          this.roundTimer--;
+          this.updateTimerDisplay();
+          if (this.roundTimer <= 0) {
+            this.resolveRound();
+          }
+        }, 1000);
+      },
+
+      updateTimerDisplay() {
+        const el = document.getElementById("hud-timer");
+        const box = document.getElementById("hud-timer-box");
+        el.textContent = `${this.roundTimer}s`;
+        if (this.roundTimer <= 5) {
+          box.classList.add("border-rose-500", "animate-urgent");
+          el.classList.add("text-rose-400");
+        } else {
+          box.classList.remove("border-rose-500", "animate-urgent");
+          el.classList.remove("text-rose-400");
+        }
+      },
+
+      resetPlayerButtons(pIdx) {
+        const baseStyles = [
+          "ans-btn bg-blue-600 hover:bg-blue-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-blue-300",
+          "ans-btn bg-red-600 hover:bg-red-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-red-300",
+          "ans-btn bg-amber-500 hover:bg-amber-400 text-slate-950 font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-amber-200",
+          "ans-btn bg-emerald-600 hover:bg-emerald-500 text-white font-display font-bold text-lg md:text-2xl py-2.5 md:py-3.5 rounded-xl border-2 border-emerald-300"
+        ];
+        for (let opt = 0; opt < 4; opt++) {
+          const btn = document.getElementById(`p${pIdx}-btn-${opt}`);
+          btn.disabled = false;
+          btn.className = baseStyles[pIdx];
+        }
+      },
+
+      submitPlayerAnswer(pIdx, optIdx) {
+        if (!this.isRunning || this.isCountdown || this.roundLocked) return;
+        const player = this.players[pIdx];
+        if (!player || player.answeredThisRound) return;
+
+        AudioEngine.init();
+        player.answeredThisRound = true;
+        player.selectedOption = optIdx;
+
+        for (let i = 0; i < 4; i++) {
+          const btn = document.getElementById(`p${pIdx}-btn-${i}`);
+          btn.disabled = true;
+          if (i === optIdx) {
+            btn.classList.add("ring-4", "ring-white", "scale-105");
+          } else {
+            btn.classList.add("opacity-40");
+          }
+        }
+
+        const statusEl = document.getElementById(`p-status-${pIdx}`);
+        statusEl.textContent = "🔒 Jawaban terkunci";
+        statusEl.className = "font-extrabold text-amber-300";
+
+        const allAnswered = this.players.every(p => p.answeredThisRound);
+        if (allAnswered) {
+          this.resolveRound();
+        }
+      },
+
+      resolveRound() {
+        if (this.roundLocked) return;
+        this.roundLocked = true;
+        if (this.roundInterval) clearInterval(this.roundInterval);
+
+        const correctIdx = this.currentQuestion.correctIndex;
+        let anyCorrect = false;
+        let anyWrong = false;
+
+        const correctCard = document.getElementById(`opt-card-${correctIdx}`);
+        correctCard.className = "bg-emerald-200 border-2 border-emerald-600 rounded-lg px-2.5 py-1 flex items-center gap-1.5 shadow-sm";
+
+        this.players.forEach((p, idx) => {
+          const statusEl = document.getElementById(`p-status-${idx}`);
+          for (let i = 0; i < 4; i++) {
+            document.getElementById(`p${idx}-btn-${i}`).disabled = true;
+          }
+
+          if (!p.answeredThisRound) {
+            p.unansweredCount++;
+            p.slowTimer = 2.0;
+            statusEl.textContent = "⏰ Tidak menjawab";
+            statusEl.className = "font-bold text-slate-300";
+          } else if (p.selectedOption === correctIdx) {
+            anyCorrect = true;
+            p.correctCount++;
+            const speedBonus = Math.max(0, Math.floor(this.roundTimer * 2));
+            p.score += 100 + speedBonus;
+            p.boostTimer = 4.2;
+            p.slowTimer = 0;
+            if (Arena3D.runners[idx]) {
+              Arena3D.runners[idx].jumpVel = 8.5;
+            }
+            statusEl.textContent = `✅ BENAR! +${100 + speedBonus}`;
+            statusEl.className = "font-black text-emerald-300";
+          } else {
+            anyWrong = true;
+            p.wrongCount++;
+            p.slowTimer = 2.8;
+            p.boostTimer = 0;
+            statusEl.textContent = "❌ SALAH!";
+            statusEl.className = "font-black text-rose-300";
+          }
+
+          document.getElementById(`p-score-${idx}`).textContent = p.score;
+        });
+
+        if (anyCorrect) AudioEngine.playCorrect();
+        else if (anyWrong) AudioEngine.playWrong();
+
+        this.matchLogs.push({
+          number: this.currentQIndex + 1,
+          question: this.currentQuestion.question,
+          correctText: this.currentQuestion.shuffledOptions[correctIdx],
+          explanation: this.currentQuestion.explanation || "Jawaban sesuai materi pembelajaran.",
+          playerResults: this.players.map(p => ({
+            name: p.name,
+            chosen: p.selectedOption !== null ? this.currentQuestion.shuffledOptions[p.selectedOption] : "Tidak dijawab",
+            isCorrect: p.selectedOption === correctIdx
+          }))
+        });
+
+        document.getElementById("quiz-round-status").textContent = `Kunci Jawaban: ${["A", "B", "C", "D"][correctIdx]}`;
+        document.getElementById("round-explanation-text").textContent =
+          this.currentQuestion.explanation || `Jawaban yang benar adalah ${this.currentQuestion.shuffledOptions[correctIdx]}.`;
+        document.getElementById("round-explanation-bar").classList.remove("hidden");
+
+        this.nextRoundTimeout = setTimeout(() => {
+          if (!this.isRunning) return;
+          if (this.currentQIndex + 1 >= this.questionsPool.length || this.players.every(p => p.finished)) {
+            this.finishMatch();
+          } else {
+            this.loadRound(this.currentQIndex + 1);
+          }
+        }, 3200);
+      },
+
+      updatePhysics(dt) {
+        if (!this.isRunning) return;
+
+        const nowSec = (performance.now() - this.matchStartTime) / 1000;
+
+        this.players.forEach((p, idx) => {
+          if (p.finished) return;
+
+          if (p.boostTimer > 0) p.boostTimer = Math.max(0, p.boostTimer - dt);
+          if (p.slowTimer > 0) p.slowTimer = Math.max(0, p.slowTimer - dt);
+          if (p.turboTimer > 0) p.turboTimer = Math.max(0, p.turboTimer - dt);
+          if (p.shieldTimer > 0) p.shieldTimer = Math.max(0, p.shieldTimer - dt);
+          if (p.magnetTimer > 0) p.magnetTimer = Math.max(0, p.magnetTimer - dt);
+
+          const pwrBadges = [];
+          if (p.turboTimer > 0) pwrBadges.push("⚡TURBO");
+          if (p.shieldTimer > 0) pwrBadges.push("🛡️PERISAI");
+          if (p.magnetTimer > 0) pwrBadges.push("🧲MAGNET");
+          document.getElementById(`p-power-${idx}`).textContent = pwrBadges.join(" ");
+
+          let targetSpeed = p.baseSpeed;
+          if (p.boostTimer > 0) targetSpeed += 3.4;
+          if (p.turboTimer > 0) targetSpeed += 4.2;
+          if (p.slowTimer > 0) targetSpeed -= 1.25;
+          targetSpeed = Math.max(0.8, Math.min(8.8, targetSpeed));
+
+          p.speed += (targetSpeed - p.speed) * 0.12;
+          p.distance += p.speed * dt;
+
+          Arena3D.obstacles.forEach(obs => {
+            if (obs.lane !== idx || obs.hitBy.has(idx)) return;
+            if (Math.abs(p.distance - obs.z) < 0.95) {
+              obs.hitBy.add(idx);
+              const runner = Arena3D.runners[idx];
+              if (p.boostTimer > 0 || p.turboTimer > 0 || (runner && runner.jumpY > 0.6)) {
+                if (runner && runner.jumpY <= 0.1) runner.jumpVel = 9.0;
+                this.pushArenaToast(`${p.name} melompati rintangan!`, "bg-sky-600");
+              } else if (p.shieldTimer > 0) {
+                p.shieldTimer = 0;
+                AudioEngine.playPowerUp();
+                this.pushArenaToast(`🛡️ Perisai ${p.name} menahan rintangan!`, "bg-cyan-600");
+              } else {
+                p.slowTimer = 1.6;
+                if (runner) runner.stumbleTimer = 0.8;
+                AudioEngine.playObstacle();
+                this.pushArenaToast(`⚠️ ${p.name} terkena rintangan!`, "bg-rose-600");
+              }
+            }
+          });
+
+          const pickupRadius = p.magnetTimer > 0 ? 3.2 : 1.15;
+          Arena3D.powerups.forEach(pu => {
+            if (pu.lane !== idx || pu.collectedBy.has(idx)) return;
+            if (Math.abs(p.distance - pu.z) < pickupRadius) {
+              pu.collectedBy.add(idx);
+              pu.mesh.visible = false;
+              AudioEngine.playPowerUp();
+              if (pu.type === "turbo") {
+                p.turboTimer = 4.0;
+                this.pushArenaToast(`⚡ ${p.name} dapat TURBO!`, "bg-orange-600");
+              } else if (pu.type === "shield") {
+                p.shieldTimer = 7.0;
+                this.pushArenaToast(`🛡️ ${p.name} dapat PERISAI!`, "bg-sky-600");
+              } else if (pu.type === "magnet") {
+                p.magnetTimer = 7.0;
+                p.score += 25;
+                this.pushArenaToast(`🧲 ${p.name} dapat MAGNET (+25)!`, "bg-purple-600");
+              } else if (pu.type === "star") {
+                p.score += 50;
+                this.pushArenaToast(`⭐ ${p.name} dapat BINTANG (+50)!`, "bg-amber-500 text-slate-950");
+              }
+              document.getElementById(`p-score-${idx}`).textContent = p.score;
+            }
+          });
+
+          if (p.distance >= Arena3D.trackLength) {
+            p.distance = Arena3D.trackLength;
+            p.finished = true;
+            this.finishOrderCount++;
+            p.finishTime = nowSec.toFixed(2);
+            AudioEngine.playFinish();
+            this.pushArenaToast(`🏁 ${p.name} FINISH ke-${this.finishOrderCount}!`, "bg-emerald-600");
+            document.getElementById(`p-status-${idx}`).textContent = `🏁 FINISH #${this.finishOrderCount}`;
+          }
+        });
+
+        this.updateLiveRankingsAndProgress();
+
+        if (this.players.every(p => p.finished)) {
+          this.finishMatch();
+        }
+      },
+
+      updateLiveRankingsAndProgress() {
+        this.players.forEach((p, idx) => {
+          const pct = Math.min(96, Math.max(0, (p.distance / Arena3D.trackLength) * 96));
+          const dot = document.getElementById(`prog-dot-${idx}`);
+          if (dot) dot.style.left = `${pct}%`;
+        });
+
+        const sorted = [...this.players].sort((a, b) => {
+          if (a.finished && b.finished) return parseFloat(a.finishTime) - parseFloat(b.finishTime);
+          if (a.finished) return -1;
+          if (b.finished) return 1;
+          if (Math.abs(b.distance - a.distance) > 0.5) return b.distance - a.distance;
+          return b.score - a.score;
+        });
+
+        const badgeColors = ["bg-blue-600", "bg-red-600", "bg-amber-400 text-slate-950", "bg-emerald-600"];
+        const rankContainer = document.getElementById("hud-live-ranks");
+        if (rankContainer) {
+          rankContainer.innerHTML = sorted
+            .map((p, rIdx) => `<span class="${badgeColors[p.id]} px-2 py-0.5 rounded-md">#${rIdx + 1} ${p.name}</span>`)
+            .join("");
+        }
+      },
+
+      pushArenaToast(text, colorClass) {
+        const feed = document.getElementById("arena-toast-feed");
+        if (!feed) return;
+        const item = document.createElement("div");
+        item.className = `${colorClass} text-white text-xs font-extrabold px-3 py-1.5 rounded-xl shadow-lg animate-pop`;
+        item.textContent = text;
+        feed.appendChild(item);
+        setTimeout(() => {
+          item.remove();
+        }, 2400);
+      },
+
+      stopTimers() {
+        if (this.roundInterval) clearInterval(this.roundInterval);
+        if (this.nextRoundTimeout) clearTimeout(this.nextRoundTimeout);
+        AudioEngine.stopBGM();
+      },
+
+      finishMatch() {
+        if (!this.isRunning) return;
+        this.isRunning = false;
+        this.stopTimers();
+
+        const totalDurationSec = ((performance.now() - this.matchStartTime) / 1000).toFixed(1);
+
+        const ranked = [...this.players].sort((a, b) => {
+          if (a.finished && b.finished) return parseFloat(a.finishTime) - parseFloat(b.finishTime);
+          if (a.finished) return -1;
+          if (b.finished) return 1;
+          const scoreA = a.distance * 10 + a.score;
+          const scoreB = b.distance * 10 + b.score;
+          return scoreB - scoreA;
+        });
+
+        AudioEngine.playVictory();
+        Arena3D.spawnConfetti();
+
+        const subjObj = ALL_SUBJECTS.find(s => s.id === AppState.selectedSubject);
+        const historyRecord = {
+          id: Date.now(),
+          date: new Date().toLocaleString("id-ID", { dateStyle: "medium", timeStyle: "short" }),
+          grade: AppState.selectedGrade,
+          subject: subjObj ? subjObj.name : AppState.selectedSubject,
+          duration: `${totalDurationSec} detik`,
+          winner: ranked[0].name,
+          players: ranked.map((p, idx) => ({
+            rank: idx + 1,
+            name: p.name,
+            color: p.colorName,
+            score: p.score,
+            correct: p.correctCount,
+            wrong: p.wrongCount,
+            unanswered: p.unansweredCount,
+            finishTime: p.finishTime ? `${p.finishTime}s` : `${Math.round((p.distance / Arena3D.trackLength) * 100)}% lintasan`
+          }))
+        };
+        AppState.history.unshift(historyRecord);
+        saveHistoryToStorage();
+
+        this.renderResultsModal(ranked, historyRecord);
+      },
+
+      renderResultsModal(ranked, record) {
+        document.getElementById("result-meta-summary").textContent =
+          `Kelas ${record.grade} • ${record.subject} • Durasi: ${record.duration}`;
+
+        const medals = ["🥇 JUARA 1", "🥈 JUARA 2", "🥉 JUARA 3", "🏅 JUARA 4"];
+        const cardStyles = [
+          "bg-gradient-to-b from-amber-500/30 to-slate-900 border-amber-400 scale-[1.02]",
+          "bg-gradient-to-b from-slate-400/20 to-slate-900 border-slate-300",
+          "bg-gradient-to-b from-orange-700/25 to-slate-900 border-orange-400",
+          "bg-slate-900/90 border-slate-600"
+        ];
+        const dotClasses = ["bg-blue-500", "bg-red-500", "bg-amber-400", "bg-emerald-500"];
+
+        const podiumGrid = document.getElementById("podium-cards-grid");
+        podiumGrid.innerHTML = ranked.map((p, idx) => {
+          const totalAnswered = p.correctCount + p.wrongCount + p.unansweredCount;
+          const acc = totalAnswered > 0 ? Math.round((p.correctCount / totalAnswered) * 100) : 0;
+          return `
+            <div class="rounded-2xl border-2 p-4 text-center flex flex-col justify-between ${cardStyles[idx]}">
+              <div>
+                <div class="text-xs font-black tracking-wider text-amber-300 mb-1">${medals[idx]}</div>
+                <div class="inline-flex items-center gap-1.5 bg-slate-950/70 px-3 py-1 rounded-full mb-2">
+                  <span class="w-3 h-3 rounded-full ${dotClasses[p.id]}"></span>
+                  <span class="text-xs font-bold text-slate-300">${p.colorName}</span>
+                </div>
+                <div class="font-display text-xl md:text-2xl font-bold text-white truncate">${escapeHTML(p.name)}</div>
+              </div>
+              <div class="mt-3 pt-2 border-t border-white/10">
+                <div class="text-2xl font-black text-amber-400">${p.score} <span class="text-xs font-bold text-slate-300">POIN</span></div>
+                <div class="text-xs text-slate-300 mt-1">Akurasi: <strong>${acc}%</strong> • ${p.finishTime ? `Finish ${p.finishTime}s` : `${Math.round((p.distance / Arena3D.trackLength) * 100)}%`}</div>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        const tbody = document.getElementById("results-table-body");
+        tbody.innerHTML = ranked.map((p, idx) => {
+          const totalQ = p.correctCount + p.wrongCount + p.unansweredCount;
+          const acc = totalQ > 0 ? Math.round((p.correctCount / totalQ) * 100) : 0;
+          return `
+            <tr>
+              <td class="px-4 py-2.5 font-black text-amber-300">#${idx + 1}</td>
+              <td class="px-4 py-2.5 text-white">${escapeHTML(p.name)} (${p.colorName})</td>
+              <td class="px-4 py-2.5 font-extrabold text-amber-400">${p.score}</td>
+              <td class="px-4 py-2.5 text-emerald-400">${p.correctCount}</td>
+              <td class="px-4 py-2.5 text-rose-400">${p.wrongCount}</td>
+              <td class="px-4 py-2.5 text-slate-400">${p.unansweredCount}</td>
+              <td class="px-4 py-2.5 text-sky-300">${acc}%</td>
+              <td class="px-4 py-2.5 text-slate-200">${p.finishTime ? `${p.finishTime} detik` : "Belum garis finish"}</td>
+            </tr>
+          `;
+        }).join("");
+
+        const reviewList = document.getElementById("results-review-list");
+        reviewList.innerHTML = this.matchLogs.map(log => `
+          <div class="bg-slate-800/80 border border-slate-700 rounded-xl p-3 text-xs">
+            <div class="font-extrabold text-white mb-1">Soal ${log.number}: ${escapeHTML(log.question)}</div>
+            <div class="text-emerald-300 font-bold">Kunci: ${escapeHTML(log.correctText)}</div>
+            <div class="text-slate-300 mt-0.5">Pembahasan: ${escapeHTML(log.explanation)}</div>
+          </div>
+        `).join("");
+
+        document.getElementById("results-review-section").classList.add("hidden");
+        document.getElementById("modal-results").classList.remove("hidden");
+      }
+    };
+
+    function escapeHTML(str) {
+      if (!str) return "";
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function openModal(id) {
+      AudioEngine.init();
+      document.getElementById(id).classList.remove("hidden");
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add("hidden");
+    }
+
+    function toggleFullScreen() {
+      AudioEngine.init();
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {
+          showDialog("Info Layar Penuh", "Browser membatasi mode layar penuh otomatis. Silakan tekan tombol F11 pada keyboard atau gunakan menu layar penuh pada perangkat IFP.");
+        });
+      } else {
+        if (document.exitFullscreen) document.exitFullscreen();
+      }
+    }
+
+    function cycleCameraMode() {
+      const modes = ["dynamic", "broadcast", "chase"];
+      const labels = { dynamic: "Kamera Dinamis", broadcast: "Kamera Samping-Atas", chase: "Kamera Belakang" };
+      const nextIdx = (modes.indexOf(AppState.settings.cameraMode) + 1) % modes.length;
+      AppState.settings.cameraMode = modes[nextIdx];
+      saveSettingsToStorage();
+      GameEngine.pushArenaToast(`🎥 ${labels[AppState.settings.cameraMode]}`, "bg-indigo-600");
+    }
+
+    function showDialog(title, message, buttons = null) {
+      document.getElementById("dialog-title").textContent = title;
+      document.getElementById("dialog-message").textContent = message;
+      const actions = document.getElementById("dialog-actions");
+      if (!buttons) {
+        actions.innerHTML = `<button onclick="closeModal('custom-dialog')" class="btn-arcade bg-amber-400 text-slate-950 font-extrabold px-6 py-2 rounded-xl">Tutup</button>`;
+      } else {
+        actions.innerHTML = buttons;
+      }
+      openModal("custom-dialog");
+    }
+
+    function confirmExitMatch() {
+      showDialog(
+        "Keluar Pertandingan?",
+        "Pertandingan sedang berlangsung. Apakah Anda yakin ingin kembali ke menu utama?",
+        `
+          <button onclick="closeModal('custom-dialog')" class="btn-arcade bg-slate-700 text-white font-bold px-5 py-2 rounded-xl">Lanjut Main</button>
+          <button onclick="closeModal('custom-dialog'); abortMatchToHome();" class="btn-arcade bg-rose-600 text-white font-extrabold px-5 py-2 rounded-xl">Ya, Keluar</button>
+        `
+      );
+    }
+
+    function abortMatchToHome() {
+      GameEngine.isRunning = false;
+      GameEngine.isCountdown = false;
+      GameEngine.stopTimers();
+      Arena3D.clearConfetti();
+      document.getElementById("screen-game").classList.add("hidden");
+      document.getElementById("screen-home").classList.remove("hidden");
+    }
+
+    function openSetupModal() {
+      for (let i = 0; i < 4; i++) {
+        document.getElementById(`input-p${i}`).value = AppState.playerNames[i];
+      }
+      renderGradeButtons();
+      renderSubjectButtons();
+      openModal("modal-setup");
+    }
+
+    function renderGradeButtons() {
+      const grid = document.getElementById("grade-selector-grid");
+      grid.innerHTML = [1, 2, 3, 4, 5, 6].map(g => {
+        const active = Number(AppState.selectedGrade) === g;
+        return `
+          <button onclick="selectGrade(${g})" class="btn-arcade py-3 px-2 rounded-2xl font-display font-bold text-base md:text-lg border-2 ${
+            active
+              ? "bg-amber-400 text-slate-950 border-white shadow-lg"
+              : "bg-slate-800 hover:bg-slate-700 text-white border-slate-600"
+          }">
+            Kelas ${g}
+          </button>
+        `;
+      }).join("");
+
+      const phaseMap = {
+        1: "Fase A (Kelas 1) • Mata pelajaran IPAS belum diajarkan pada Kelas 1–2 sesuai Kurikulum Merdeka.",
+        2: "Fase A (Kelas 2) • Mata pelajaran IPAS mulai tersedia pada jenjang Kelas 3.",
+        3: "Fase B (Kelas 3) • Seluruh 12 mata pelajaran termasuk IPAS tersedia.",
+        4: "Fase B (Kelas 4) • Seluruh 12 mata pelajaran tersedia.",
+        5: "Fase C (Kelas 5) • Seluruh 12 mata pelajaran tersedia.",
+        6: "Fase C (Kelas 6) • Seluruh 12 mata pelajaran tersedia."
+      };
+      document.getElementById("grade-phase-note").textContent = phaseMap[AppState.selectedGrade] || "";
+    }
+
+    function selectGrade(g) {
+      AppState.selectedGrade = g;
+      if (g < 3 && AppState.selectedSubject === "IPAS") {
+        AppState.selectedSubject = "MTK";
+      }
+      renderGradeButtons();
+      renderSubjectButtons();
+    }
+
+    function renderSubjectButtons() {
+      const grid = document.getElementById("subject-selector-grid");
+      grid.innerHTML = ALL_SUBJECTS.map(subj => {
+        const disabled = AppState.selectedGrade < subj.minGrade;
+        const active = AppState.selectedSubject === subj.id && !disabled;
+        const count = AppState.questions.filter(
+          q => Number(q.grade) === Number(AppState.selectedGrade) && q.subject === subj.id
+        ).length;
+
+        return `
+          <button onclick="selectSubject('${subj.id}')" ${disabled ? "disabled" : ""} class="btn-arcade text-left p-3 rounded-2xl border-2 flex items-start gap-2.5 ${
+            disabled
+              ? "bg-slate-900/50 border-slate-800 text-slate-500"
+              : active
+                ? "bg-sky-600 border-sky-200 text-white shadow-lg"
+                : "bg-slate-800/90 hover:bg-slate-700 border-slate-600 text-slate-100"
+          }">
+            <span class="text-xl shrink-0">${subj.icon}</span>
+            <div class="min-w-0 flex-1">
+              <div class="font-extrabold text-xs md:text-sm leading-tight truncate">${subj.name}</div>
+              <div class="text-[11px] opacity-80 mt-0.5">${disabled ? "Mulai Kelas 3" : `${count} soal`}</div>
+            </div>
+          </button>
+        `;
+      }).join("");
+
+      const exactCount = AppState.questions.filter(
+        q => Number(q.grade) === Number(AppState.selectedGrade) && q.subject === AppState.selectedSubject
+      ).length;
+      document.getElementById("available-q-count").textContent = `Tersedia: ${exactCount} Soal Khusus`;
+    }
+
+    function selectSubject(subjId) {
+      AppState.selectedSubject = subjId;
+      renderSubjectButtons();
+    }
+
+    function startMatchFromSetup() {
+      for (let i = 0; i < 4; i++) {
+        const val = document.getElementById(`input-p${i}`).value.trim();
+        AppState.playerNames[i] = val || `Siswa ${i + 1}`;
+      }
+      closeModal("modal-setup");
+      GameEngine.startMatch();
+    }
+
+    function toggleResultsReview() {
+      document.getElementById("results-review-section").classList.toggle("hidden");
+    }
+
+    function playAgainSameSetup() {
+      closeModal("modal-results");
+      GameEngine.startMatch();
+    }
+
+    function changePlayersFromResults() {
+      closeModal("modal-results");
+      abortMatchToHome();
+      openSetupModal();
+    }
+
+    function exitToHomeFromResults() {
+      closeModal("modal-results");
+      abortMatchToHome();
+    }
+
+    function openBankSoalModal() {
+      updateFormSubjectOptions();
+      const filterSubj = document.getElementById("filter-bank-subject");
+      filterSubj.innerHTML = `<option value="ALL">Semua Mata Pelajaran</option>` +
+        ALL_SUBJECTS.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+      renderBankList();
+      openModal("modal-bank");
+    }
+
+    function updateFormSubjectOptions() {
+      const grade = Number(document.getElementById("fq-grade").value);
+      const subjSelect = document.getElementById("fq-subject");
+      const currentVal = subjSelect.value;
+      subjSelect.innerHTML = ALL_SUBJECTS
+        .filter(s => grade >= s.minGrade)
+        .map(s => `<option value="${s.id}">${s.name}</option>`)
+        .join("");
+      if ([...subjSelect.options].some(o => o.value === currentVal)) {
+        subjSelect.value = currentVal;
+      }
+    }
+
+    function renderBankList() {
+      const gFilter = document.getElementById("filter-bank-grade").value;
+      const sFilter = document.getElementById("filter-bank-subject").value;
+      const search = document.getElementById("filter-bank-search").value.toLowerCase().trim();
+
+      const filtered = AppState.questions.filter(q => {
+        if (gFilter !== "ALL" && String(q.grade) !== gFilter) return false;
+        if (sFilter !== "ALL" && q.subject !== sFilter) return false;
+        if (search && !q.question.toLowerCase().includes(search) && !(q.topic || "").toLowerCase().includes(search)) return false;
+        return true;
+      });
+
+      document.getElementById("bank-total-badge").textContent = `${filtered.length} Soal`;
+      const container = document.getElementById("bank-questions-list");
+
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center text-slate-400 py-10 font-bold">Tidak ada soal yang sesuai filter.</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(q => {
+        const subjObj = ALL_SUBJECTS.find(s => s.id === q.subject);
+        const letters = ["A", "B", "C", "D"];
+        return `
+          <div class="bg-slate-900/90 border border-slate-700 rounded-2xl p-3.5 flex flex-col gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap items-center gap-1.5">
+                <span class="bg-amber-400 text-slate-950 text-[11px] font-black px-2 py-0.5 rounded-md">Kelas ${q.grade}</span>
+                <span class="bg-sky-900 text-sky-200 text-[11px] font-bold px-2 py-0.5 rounded-md">${subjObj ? subjObj.name : q.subject}</span>
+                <span class="bg-slate-800 text-slate-300 text-[11px] px-2 py-0.5 rounded-md">${escapeHTML(q.topic || "Umum")} • ${q.difficulty}</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button onclick="editQuestion('${q.id}')" class="btn-arcade bg-amber-500 hover:bg-amber-400 text-slate-950 text-xs font-extrabold px-2.5 py-1 rounded-lg">Edit</button>
+                <button onclick="deleteQuestion('${q.id}')" class="btn-arcade bg-rose-600 hover:bg-rose-500 text-white text-xs font-extrabold px-2.5 py-1 rounded-lg">Hapus</button>
+              </div>
+            </div>
+            <div class="font-bold text-white text-sm">${escapeHTML(q.question)}</div>
+            <div class="grid grid-cols-2 gap-1.5 text-xs">
+              ${q.options.map((opt, idx) => `
+                <div class="px-2.5 py-1 rounded-lg ${idx === Number(q.answer) ? "bg-emerald-950 border border-emerald-500 text-emerald-200 font-bold" : "bg-slate-800/70 text-slate-300"}">
+                  <strong>${letters[idx]}.</strong> ${escapeHTML(opt)}
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function saveQuestionFromForm() {
+      const editId = document.getElementById("edit-q-id").value;
+      const grade = Number(document.getElementById("fq-grade").value);
+      const subject = document.getElementById("fq-subject").value;
+      const topic = document.getElementById("fq-topic").value.trim() || "Materi Umum";
+      const difficulty = document.getElementById("fq-diff").value;
+      const question = document.getElementById("fq-question").value.trim();
+      const options = [
+        document.getElementById("fq-opt0").value.trim(),
+        document.getElementById("fq-opt1").value.trim(),
+        document.getElementById("fq-opt2").value.trim(),
+        document.getElementById("fq-opt3").value.trim()
+      ];
+      const answer = Number(document.getElementById("fq-answer").value);
+      const explanation = document.getElementById("fq-explanation").value.trim() || "Jawaban sesuai pembahasan guru.";
+
+      if (!question || options.some(o => !o)) {
+        showDialog("Data Belum Lengkap", "Harap isi teks pertanyaan dan keempat pilihan jawaban A, B, C, dan D.");
+        return;
+      }
+
+      if (editId) {
+        const idx = AppState.questions.findIndex(q => q.id === editId);
+        if (idx !== -1) {
+          AppState.questions[idx] = { id: editId, grade, subject, topic, difficulty, question, options, answer, explanation };
+        }
+      } else {
+        AppState.questions.unshift({
+          id: "guru-" + Date.now(),
+          grade,
+          subject,
+          topic,
+          difficulty,
+          question,
+          options,
+          answer,
+          explanation
+        });
+      }
+
+      saveQuestionsToStorage();
+      resetQuestionForm();
+      renderBankList();
+      showDialog("Berhasil Disimpan", "Soal telah disimpan ke Bank Soal lokal pada perangkat ini.");
+    }
+
+    function editQuestion(id) {
+      const q = AppState.questions.find(item => item.id === id);
+      if (!q) return;
+      document.getElementById("edit-q-id").value = q.id;
+      document.getElementById("form-q-title").textContent = "✏️ Edit Soal";
+      document.getElementById("btn-cancel-edit").classList.remove("hidden");
+
+      document.getElementById("fq-grade").value = q.grade;
+      updateFormSubjectOptions();
+      document.getElementById("fq-subject").value = q.subject;
+      document.getElementById("fq-topic").value = q.topic || "";
+      document.getElementById("fq-diff").value = q.difficulty || "Sedang";
+      document.getElementById("fq-question").value = q.question;
+      document.getElementById("fq-opt0").value = q.options[0] || "";
+      document.getElementById("fq-opt1").value = q.options[1] || "";
+      document.getElementById("fq-opt2").value = q.options[2] || "";
+      document.getElementById("fq-opt3").value = q.options[3] || "";
+      document.getElementById("fq-answer").value = q.answer;
+      document.getElementById("fq-explanation").value = q.explanation || "";
+    }
+
+    function resetQuestionForm() {
+      document.getElementById("edit-q-id").value = "";
+      document.getElementById("form-q-title").textContent = "➕ Tambah Soal Baru";
+      document.getElementById("btn-cancel-edit").classList.add("hidden");
+      document.getElementById("fq-topic").value = "";
+      document.getElementById("fq-question").value = "";
+      document.getElementById("fq-opt0").value = "";
+      document.getElementById("fq-opt1").value = "";
+      document.getElementById("fq-opt2").value = "";
+      document.getElementById("fq-opt3").value = "";
+      document.getElementById("fq-answer").value = "0";
+      document.getElementById("fq-explanation").value = "";
+    }
+
+    function deleteQuestion(id) {
+      showDialog(
+        "Hapus Soal?",
+        "Apakah Anda yakin ingin menghapus soal ini dari Bank Soal?",
+        `
+          <button onclick="closeModal('custom-dialog')" class="btn-arcade bg-slate-700 text-white font-bold px-4 py-2 rounded-xl">Batal</button>
+          <button onclick="closeModal('custom-dialog'); confirmDeleteQuestion('${id}');" class="btn-arcade bg-rose-600 text-white font-extrabold px-4 py-2 rounded-xl">Hapus</button>
+        `
+      );
+    }
+
+    function confirmDeleteQuestion(id) {
+      AppState.questions = AppState.questions.filter(q => q.id !== id);
+      saveQuestionsToStorage();
+      renderBankList();
+    }
+
+    function restoreDefaultQuestions() {
+      showDialog(
+        "Pulihkan Soal Bawaan?",
+        "Soal bawaan SDN KESILIR 02 akan ditambahkan kembali tanpa menghapus soal buatan guru.",
+        `
+          <button onclick="closeModal('custom-dialog')" class="btn-arcade bg-slate-700 text-white font-bold px-4 py-2 rounded-xl">Batal</button>
+          <button onclick="closeModal('custom-dialog'); executeRestoreDefaults();" class="btn-arcade bg-emerald-500 text-slate-950 font-extrabold px-4 py-2 rounded-xl">Pulihkan</button>
+        `
+      );
+    }
+
+    function executeRestoreDefaults() {
+      const existingIds = new Set(AppState.questions.map(q => q.id));
+      DEFAULT_QUESTIONS.forEach(dq => {
+        if (!existingIds.has(dq.id)) {
+          AppState.questions.push({ ...dq });
+        }
+      });
+      saveQuestionsToStorage();
+      renderBankList();
+    }
+
+    function exportQuestionsJSON() {
+      const dataStr = JSON.stringify(AppState.questions, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `bank-soal-sdn-kesilir-02-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importQuestionsJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = e => {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (!Array.isArray(imported)) throw new Error("Format JSON harus berupa array soal.");
+          let added = 0;
+          imported.forEach(item => {
+            if (item.question && Array.isArray(item.options) && item.options.length === 4) {
+              AppState.questions.unshift({
+                id: "imp-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+                grade: Number(item.grade) || 4,
+                subject: item.subject || "MTK",
+                topic: item.topic || "Impor JSON",
+                difficulty: item.difficulty || "Sedang",
+                question: String(item.question),
+                options: item.options.map(String),
+                answer: Number(item.answer) || 0,
+                explanation: item.explanation || ""
+              });
+              added++;
+            }
+          });
+          saveQuestionsToStorage();
+          renderBankList();
+          showDialog("Impor Berhasil", `Berhasil mengimpor ${added} soal ke Bank Soal SDN KESILIR 02.`);
+        } catch (err) {
+          showDialog("Gagal Impor JSON", "Pastikan file JSON sesuai format Bank Soal EDU RUNNER 3D.");
+        }
+        event.target.value = "";
+      };
+      reader.readAsText(file);
+    }
+
+    function openHistoryModal() {
+      const tbody = document.getElementById("history-table-body");
+      if (AppState.history.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="5" class="px-4 py-8 text-center text-slate-400">Belum ada riwayat pertandingan yang tersimpan.</td></tr>`;
+      } else {
+        tbody.innerHTML = AppState.history.map(rec => `
+          <tr>
+            <td class="px-4 py-3 text-slate-300">${escapeHTML(rec.date)}</td>
+            <td class="px-4 py-3 text-white">Kelas ${rec.grade} • ${escapeHTML(rec.subject)}</td>
+            <td class="px-4 py-3 font-extrabold text-amber-400">🏆 ${escapeHTML(rec.winner)}</td>
+            <td class="px-4 py-3 text-xs text-slate-200">
+              ${rec.players.map(p => `#${p.rank} ${escapeHTML(p.name)} (${p.score} pts, B:${p.correct}/S:${p.wrong})`).join(" • ")}
+            </td>
+            <td class="px-4 py-3 text-slate-300">${escapeHTML(rec.duration)}</td>
+          </tr>
+        `).join("");
+      }
+      openModal("modal-history");
+    }
+
+    function exportHistoryCSV() {
+      if (AppState.history.length === 0) {
+        showDialog("Riwayat Kosong", "Belum ada data pertandingan untuk diekspor.");
+        return;
+      }
+      const rows = [["Tanggal", "Kelas", "Mata Pelajaran", "Peringkat", "Nama Siswa", "Warna", "Skor", "Benar", "Salah", "Kosong", "Waktu Finish"]];
+      AppState.history.forEach(rec => {
+        rec.players.forEach(p => {
+          rows.push([rec.date, rec.grade, rec.subject, p.rank, p.name, p.color, p.score, p.correct, p.wrong, p.unanswered, p.finishTime]);
+        });
+      });
+      const csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `riwayat-edurunner3d-sdn-kesilir-02.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function clearMatchHistory() {
+      showDialog(
+        "Hapus Semua Riwayat?",
+        "Semua catatan pertandingan lokal pada perangkat ini akan dihapus.",
+        `
+          <button onclick="closeModal('custom-dialog')" class="btn-arcade bg-slate-700 text-white font-bold px-4 py-2 rounded-xl">Batal</button>
+          <button onclick="closeModal('custom-dialog'); AppState.history=[]; saveHistoryToStorage(); openHistoryModal();" class="btn-arcade bg-rose-600 text-white font-extrabold px-4 py-2 rounded-xl">Hapus</button>
+        `
+      );
+    }
+
+    function openSettingsModal() {
+      document.getElementById("set-qcount").value = AppState.settings.qCount;
+      document.getElementById("set-timer").value = AppState.settings.timerSec;
+      document.getElementById("set-graphics").value = AppState.settings.graphics;
+      document.getElementById("set-camera").value = AppState.settings.cameraMode;
+      document.getElementById("set-vol-music").value = AppState.settings.musicVol;
+      document.getElementById("vol-music-label").textContent = AppState.settings.musicVol + "%";
+      document.getElementById("set-vol-sfx").value = AppState.settings.sfxVol;
+      document.getElementById("vol-sfx-label").textContent = AppState.settings.sfxVol + "%";
+      openModal("modal-settings");
+    }
+
+    function saveSettingsFromModal() {
+      const prevGraphics = AppState.settings.graphics;
+      AppState.settings.qCount = Number(document.getElementById("set-qcount").value);
+      AppState.settings.timerSec = Number(document.getElementById("set-timer").value);
+      AppState.settings.graphics = document.getElementById("set-graphics").value;
+      AppState.settings.cameraMode = document.getElementById("set-camera").value;
+      AppState.settings.musicVol = Number(document.getElementById("set-vol-music").value);
+      AppState.settings.sfxVol = Number(document.getElementById("set-vol-sfx").value);
+
+      saveSettingsToStorage();
+      if (prevGraphics !== AppState.settings.graphics) {
+        Arena3D.init();
+      }
+      closeModal("modal-settings");
+    }
+
+    window.addEventListener("keydown", e => {
+      if (!GameEngine.isRunning || GameEngine.isCountdown || GameEngine.roundLocked) return;
+      if (["INPUT", "TEXTAREA", "SELECT"].includes(document.activeElement.tagName)) return;
+
+      const key = e.key.toUpperCase();
+      if (key === "1") GameEngine.submitPlayerAnswer(0, 0);
+      else if (key === "2") GameEngine.submitPlayerAnswer(0, 1);
+      else if (key === "3") GameEngine.submitPlayerAnswer(0, 2);
+      else if (key === "4") GameEngine.submitPlayerAnswer(0, 3);
+      else if (key === "Q") GameEngine.submitPlayerAnswer(1, 0);
+      else if (key === "W") GameEngine.submitPlayerAnswer(1, 1);
+      else if (key === "E") GameEngine.submitPlayerAnswer(1, 2);
+      else if (key === "R") GameEngine.submitPlayerAnswer(1, 3);
+      else if (key === "A") GameEngine.submitPlayerAnswer(2, 0);
+      else if (key === "S") GameEngine.submitPlayerAnswer(2, 1);
+      else if (key === "D") GameEngine.submitPlayerAnswer(2, 2);
+      else if (key === "F") GameEngine.submitPlayerAnswer(2, 3);
+      else if (key === "J") GameEngine.submitPlayerAnswer(3, 0);
+      else if (key === "K") GameEngine.submitPlayerAnswer(3, 1);
+      else if (key === "L") GameEngine.submitPlayerAnswer(3, 2);
+      else if (e.key === ";") GameEngine.submitPlayerAnswer(3, 3);
+    });
+
+    let lastFrameTime = performance.now();
+    function mainLoop(now) {
+      requestAnimationFrame(mainLoop);
+      const dt = Math.min(0.05, (now - lastFrameTime) / 1000);
+      lastFrameTime = now;
+
+      GameEngine.updatePhysics(dt);
+      Arena3D.update(dt);
+    }
+
+    window.onload = function () {
+      loadAppStorage();
+      Arena3D.init();
+      lastFrameTime = performance.now();
+      requestAnimationFrame(mainLoop);
+    };
+  </script>
+</body>
+</html>
