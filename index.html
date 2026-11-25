@@ -622,19 +622,19 @@
 
   <!-- MODAL 3: BANK SOAL & PENGELOLAAN SOAL GURU -->
   <div id="modal-bank" class="hidden fixed inset-0 z-30 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4">
-    <div class="arcade-panel rounded-3xl w-full max-w-6xl h-[92vh] flex flex-col overflow-hidden border-2 border-amber-400/60 animate-pop">
-      <div class="px-6 py-4 bg-slate-900 border-b border-slate-700 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <span class="text-xs font-extrabold uppercase tracking-wider text-amber-400">SDN KESILIR 02 • Manajemen Konten Edukasi</span>
-          <h2 class="font-display text-2xl md:text-3xl font-bold text-white">Bank Soal & Pengelolaan Soal Guru</h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="exportQuestionsJSON()" class="btn-arcade bg-sky-600 hover:bg-sky-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm">
+        <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="downloadTemplateJSON()" class="btn-arcade bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-xl font-bold text-xs md:text-sm" title="Unduh template JSON siap isi">
+            📄 Template JSON
+          </button>
+          <button type="button" onclick="downloadTemplateCSV()" class="btn-arcade bg-teal-600 hover:bg-teal-500 text-white px-3 py-2 rounded-xl font-bold text-xs md:text-sm" title="Unduh template CSV/Excel siap isi">
+            📊 Template CSV
+          </button>
+          <button type="button" onclick="exportQuestionsJSON()" class="btn-arcade bg-sky-600 hover:bg-sky-500 text-white px-3 py-2 rounded-xl font-bold text-xs md:text-sm">
             ⬇ Ekspor JSON
           </button>
-          <label class="btn-arcade bg-purple-600 hover:bg-purple-500 text-white px-3.5 py-2 rounded-xl font-bold text-xs md:text-sm cursor-pointer">
-            ⬆ Impor JSON
-            <input type="file" accept=".json" onchange="importQuestionsJSON(event)" class="hidden" />
+          <label class="btn-arcade bg-purple-600 hover:bg-purple-500 text-white px-3 py-2 rounded-xl font-bold text-xs md:text-sm cursor-pointer">
+            ⬆ Impor JSON / CSV
+            <input type="file" accept=".json,.csv" onchange="importQuestionsFile(event)" class="hidden" />
           </label>
           <button type="button" onclick="closeModal('modal-bank')" class="btn-arcade bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-xl font-bold text-xs md:text-sm">← Kembali</button>
         </div>
@@ -2673,41 +2673,148 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `Bank_Soal_EDU_RUNNER_3D_SDN_Kesilir_02.json`;
+      a.download = `Bank_Soal_EDU_RUNNER_SDN_Kesilir_02.json`;
       a.click();
       URL.revokeObjectURL(url);
     }
 
-    function importQuestionsJSON(event) {
+    function downloadTemplateJSON() {
+      const templateData = [
+        {
+          grade: 4,
+          subject: "MTK",
+          topic: "Operasi Hitung",
+          difficulty: "Mudah",
+          question: "Hasil dari 15 + 27 adalah ....",
+          options: ["42", "32", "52", "41"],
+          answer: 0,
+          explanation: "15 + 27 = 42. (Catatan: answer 0=A, 1=B, 2=C, 3=D)"
+        },
+        {
+          grade: 4,
+          subject: "IPAS",
+          topic: "Energi",
+          difficulty: "Sedang",
+          question: "Sumber energi panas terbesar bagi bumi adalah ....",
+          options: ["Bulan", "Matahari", "Bintang", "Api unggun"],
+          answer: 1,
+          explanation: "Matahari merupakan sumber energi panas dan cahaya terbesar bagi bumi."
+        }
+      ];
+      const dataStr = JSON.stringify(templateData, null, 2);
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Template_Soal_EDU_RUNNER_SDN_Kesilir_02.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadTemplateCSV() {
+      const headers = ["Kelas", "KodeMapel", "Topik", "Tingkat", "Pertanyaan", "PilihanA", "PilihanB", "PilihanC", "PilihanD", "Kunci(A/B/C/D)", "Pembahasan"];
+      const sampleRows = [
+        [4, "MTK", "Pecahan", "Mudah", "Bentuk desimal dari 1/2 adalah ....", "0,5", "0,2", "1,2", "2,1", "A", "1 dibagi 2 sama dengan 0,5"],
+        [4, "BIndo", "Antonim", "Mudah", "Lawan kata dari 'tinggi' adalah ....", "Besar", "Rendah", "Panjang", "Luas", "B", "Lawan kata tinggi adalah rendah"]
+      ];
+      const csvLines = [
+        headers.join(","),
+        ...sampleRows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(","))
+      ];
+      const blob = new Blob(["\uFEFF" + csvLines.join("\n")], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `Template_Soal_EDU_RUNNER_SDN_Kesilir_02.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function parseCSVLine(line, delimiter = ",") {
+      const result = [];
+      let current = "";
+      let inQuotes = false;
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            current += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === delimiter && !inQuotes) {
+          result.push(current.trim());
+          current = "";
+        } else {
+          current += ch;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    function importQuestionsFile(event) {
       const file = event.target.files[0];
       if (!file) return;
+      const isCSV = file.name.toLowerCase().endsWith(".csv");
       const reader = new FileReader();
       reader.onload = (e) => {
         try {
-          const imported = JSON.parse(e.target.result);
-          if (!Array.isArray(imported)) throw new Error("Format tidak valid");
           let addedCount = 0;
-          imported.forEach((item, idx) => {
-            if (item && item.question && Array.isArray(item.options) && item.options.length === 4) {
-              AppState.questions.unshift({
-                id: item.id || `imp-${Date.now()}-${idx}`,
-                grade: Number(item.grade) || 4,
-                subject: item.subject || "MTK",
-                topic: item.topic || "Impor JSON",
-                difficulty: item.difficulty || "Sedang",
-                question: String(item.question),
-                options: item.options.map(String),
-                answer: Number(item.answer) || 0,
-                explanation: item.explanation ? String(item.explanation) : ""
-              });
-              addedCount++;
+          if (isCSV) {
+            const text = e.target.result.replace(/^\uFEFF/, "");
+            const lines = text.split(/\r?\n/).filter(l => l.trim().length > 0);
+            if (lines.length < 2) throw new Error("CSV kosong");
+            const delimiter = lines[0].includes(";") && !lines[0].includes(",") ? ";" : ",";
+            const keyMap = { A: 0, B: 1, C: 2, D: 3, "0": 0, "1": 1, "2": 2, "3": 3 };
+
+            for (let i = 1; i < lines.length; i++) {
+              const cols = parseCSVLine(lines[i], delimiter);
+              if (cols.length >= 10 && cols[4] && cols[5] && cols[6] && cols[7] && cols[8]) {
+                const rawKey = String(cols[9]).toUpperCase().trim();
+                const ansIdx = keyMap[rawKey] !== undefined ? keyMap[rawKey] : 0;
+                AppState.questions.unshift({
+                  id: `imp-csv-${Date.now()}-${i}`,
+                  grade: Number(cols[0]) || 4,
+                  subject: cols[1] || "MTK",
+                  topic: cols[2] || "Umum",
+                  difficulty: cols[3] || "Sedang",
+                  question: cols[4],
+                  options: [cols[5], cols[6], cols[7], cols[8]],
+                  answer: ansIdx,
+                  explanation: cols[10] || ""
+                });
+                addedCount++;
+              }
             }
-          });
+          } else {
+            const imported = JSON.parse(e.target.result);
+            if (!Array.isArray(imported)) throw new Error("Format tidak valid");
+            imported.forEach((item, idx) => {
+              if (item && item.question && Array.isArray(item.options) && item.options.length === 4) {
+                AppState.questions.unshift({
+                  id: item.id || `imp-${Date.now()}-${idx}`,
+                  grade: Number(item.grade) || 4,
+                  subject: item.subject || "MTK",
+                  topic: item.topic || "Impor JSON",
+                  difficulty: item.difficulty || "Sedang",
+                  question: String(item.question),
+                  options: item.options.map(String),
+                  answer: Number(item.answer) || 0,
+                  explanation: item.explanation ? String(item.explanation) : ""
+                });
+                addedCount++;
+              }
+            });
+          }
+
+          if (addedCount === 0) throw new Error("Tidak ada baris soal valid");
           saveQuestionsToStorage();
           renderBankList();
           showInfoDialog("Impor Berhasil", `Berhasil mengimpor ${addedCount} soal ke dalam bank soal SDN KESILIR 02.`);
         } catch (err) {
-          showInfoDialog("Gagal Mengimpor", "File JSON tidak sesuai format bank soal EDU RUNNER 3D.");
+          showInfoDialog("Gagal Mengimpor", "Pastikan file mengikuti format Template JSON atau Template CSV yang tersedia.");
         }
         event.target.value = "";
       };
