@@ -647,6 +647,11 @@
       </div>
 
       <div class="flex-1 grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden">
+        <div class="lg:col-span-5 p-4 md:p-5 border-b lg:border-b-0 lg:border-r border-slate-700 overflow-y-auto space-y-3 bg-slate-900/60">
+          <div class="flex items-center justify-between">
+            <h3 id="form-q-title" class="font-extrabold text-base text-emerald-300">➕ Tambah Soal Baru</h3>
+            <button type="button" id="btn-cancel-edit" onclick="resetQuestionForm()" class="hidden text-xs font-bold text-rose-400 hover:underline">Batal Edit</button>
+          </div>
           <input type="hidden" id="edit-q-id" value="" />
 
           <div class="grid grid-cols-2 gap-2.5">
@@ -2507,9 +2512,12 @@
     }
 
     function resetQuestionForm() {
-      document.getElementById("edit-q-id").value = "";
-      document.getElementById("form-q-title").textContent = "➕ Tambah Soal Baru";
-      document.getElementById("btn-cancel-edit").classList.add("hidden");
+      const editEl = document.getElementById("edit-q-id");
+      const titleEl = document.getElementById("form-q-title");
+      const cancelEl = document.getElementById("btn-cancel-edit");
+      if (editEl) editEl.value = "";
+      if (titleEl) titleEl.textContent = "➕ Tambah Soal Baru";
+      if (cancelEl) cancelEl.classList.add("hidden");
       document.getElementById("fq-topic").value = "";
       document.getElementById("fq-question").value = "";
       document.getElementById("fq-opt0").value = "";
